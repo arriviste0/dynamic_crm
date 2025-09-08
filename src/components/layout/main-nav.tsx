@@ -1,3 +1,4 @@
+
 'use client';
 import Link from 'next/link';
 import {
@@ -112,13 +113,13 @@ export function MainNav() {
         </Card>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton href="#">
+            <SidebarMenuButton href="/settings" isActive={pathname.startsWith('/settings')}>
               <Cog />
               <span>Settings</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton href="#">
+            <SidebarMenuButton href="/support" isActive={pathname.startsWith('/support')}>
               <CircleHelp />
               <span>Help</span>
             </SidebarMenuButton>
