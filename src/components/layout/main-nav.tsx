@@ -28,6 +28,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { UserNav } from './user-nav';
 import React from 'react';
+import { Card } from '../ui/card';
 
 export function MainNav() {
   const [open, setOpen] = React.useState({ deals: false });
@@ -98,7 +99,12 @@ export function MainNav() {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
-      <SidebarFooter className="p-2">
+      <SidebarFooter className="p-2 space-y-2">
+        <Card className="p-4 bg-primary/20">
+          <h3 className="font-bold text-lg mb-2">Upgrade to PRO</h3>
+          <p className="text-sm mb-4">Upgrade your account to Pro and enjoy.</p>
+          <Button variant="default" className="w-full">Upgrade plan</Button>
+        </Card>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton href="#">
@@ -113,7 +119,7 @@ export function MainNav() {
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
-        <div className="mt-4 flex items-center justify-between rounded-lg bg-card p-2">
+        <div className="mt-4 flex items-center justify-between rounded-lg bg-card p-2 border-2">
           <div className="flex items-center gap-2">
             <Avatar className="h-8 w-8">
               <AvatarImage

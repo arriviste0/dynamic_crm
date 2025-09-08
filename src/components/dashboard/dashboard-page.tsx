@@ -13,7 +13,7 @@ import { Button } from '../ui/button';
 export function DashboardPage() {
   return (
     <div className="flex h-full min-h-screen flex-col">
-      <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm md:px-6">
+      <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b-2 bg-background/80 px-4 backdrop-blur-sm md:px-6">
         <SidebarTrigger className="md:hidden" />
         <h1 className="hidden text-lg font-semibold md:block">Dashboard</h1>
         <div className="relative ml-auto flex-1 md:grow-0">
@@ -21,7 +21,7 @@ export function DashboardPage() {
           <Input
             type="search"
             placeholder="Search..."
-            className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
+            className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px] border-2 shadow-brutal"
           />
         </div>
         <div className="hidden md:block">
