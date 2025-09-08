@@ -29,9 +29,9 @@ import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { createDeal } from '@/app/actions/deals';
+import { createDeal, updateDeal } from '@/app/actions/deals';
 import { useToast } from '@/hooks/use-toast';
-import React from 'react';
+import React, { useEffect } from 'react';
 
 const dealSchema = z.object({
   dealName: z.string().min(2, 'Deal name must be at least 2 characters.'),
@@ -40,12 +40,23 @@ const dealSchema = z.object({
   stage: z.enum(['Prospect', 'Qualifying', 'Proposal', 'Negotiation', 'Closed Won', 'Closed Lost']),
 });
 
+type Deal = {
+  _id: string;
+  dealName: string;
+  companyName: string;
+  amount: string;
+  stage: string;
+};
+
 type NewDealDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onDealCreated: (deal: any) => void;
+  onDealUpdated: (deal: any) => void;
+  deal: Deal | null;
 };
 
-export function NewDealDialog({ open, onOpenChange }: NewDealDialogProps) {
+export function NewDealDialog({ open, onOpenChange, onDealCreated, onDealUpdated, deal }: NewDealDialogProps) {
   const { toast } = useToast();
   const form = useForm<z.infer<typeof dealSchema>>({
     resolver: zodResolver(dealSchema),
@@ -57,6 +68,19 @@ export function NewDealDialog({ open, onOpenChange }: NewDealDialogProps) {
     },
   });
 
+  useEffect(() => {
+    if (deal) {
+      form.reset(deal);
+    } else {
+      form.reset({
+        dealName: '',
+        companyName: '',
+        amount: '',
+        stage: 'Prospect',
+      });
+    }
+  }, [deal, form, open]);
+
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const onSubmit = async (values: z.infer<typeof dealSchema>) => {
@@ -66,7 +90,9 @@ export function NewDealDialog({ open, onOpenChange }: NewDealDialogProps) {
       formData.append(key, value);
     });
 
-    const result = await createDeal(formData);
+    const result = deal 
+        ? await updateDeal(deal._id, formData) 
+        : await createDeal(formData);
 
     if (result.success) {
       toast({
@@ -75,6 +101,11 @@ export function NewDealDialog({ open, onOpenChange }: NewDealDialogProps) {
       });
       form.reset();
       onOpenChange(false);
+      if (deal) {
+        onDealUpdated(result);
+      } else {
+        onDealCreated(result);
+      }
     } else {
       toast({
         variant: 'destructive',
@@ -85,13 +116,18 @@ export function NewDealDialog({ open, onOpenChange }: NewDealDialogProps) {
     setIsSubmitting(false);
   };
 
+  const dialogTitle = deal ? "Edit Deal" : "Create New Deal";
+  const dialogDescription = deal ? "Update the details of your deal." : "Fill in the details below to create a new deal in the pipeline.";
+  const buttonText = deal ? "Save Changes" : "Create Deal";
+
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Create New Deal</DialogTitle>
+          <DialogTitle>{dialogTitle}</DialogTitle>
           <DialogDescription>
-            Fill in the details below to create a new deal in the pipeline.
+            {dialogDescription}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -141,7 +177,7 @@ export function NewDealDialog({ open, onOpenChange }: NewDealDialogProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Stage</FormLabel>
-                   <Select onValueChange={field.onChange} defaultValue={field.value}>
+                   <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a stage" />
@@ -163,7 +199,7 @@ export function NewDealDialog({ open, onOpenChange }: NewDealDialogProps) {
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>Cancel</Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Creating...' : 'Create Deal'}
+                {isSubmitting ? 'Saving...' : buttonText}
               </Button>
             </DialogFooter>
           </form>

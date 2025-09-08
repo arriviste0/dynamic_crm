@@ -2,7 +2,7 @@
 'use client';
 
 import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
+import { Search, MoreHorizontal } from 'lucide-react';
 import { SidebarTrigger } from '../ui/sidebar';
 import { UserNav } from '../layout/user-nav';
 import { Button } from '../ui/button';
@@ -21,78 +21,41 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import Image from 'next/image';
-import React, { useState } from 'react';
+import React, { useState, useTransition } from 'react';
 import { NewDealDialog } from './new-deal-dialog';
+import { getDeals, deleteDeal } from '@/app/actions/deals';
+import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
-const dealsData = [
-  {
-    dealName: 'Project Phoenix',
-    companyName: 'Innovate Inc.',
-    companyLogo: 'https://picsum.photos/40/40?random=1',
-    amount: '$250,000',
-    stage: 'Negotiation',
-    owner: { name: 'Olivia Martin', avatar: 'https://picsum.photos/40/40?random=6' },
-  },
-  {
-    dealName: 'Quantum Leap',
-    companyName: 'Synergy Corp',
-    companyLogo: 'https://picsum.photos/40/40?random=2',
-    amount: '$150,000',
-    stage: 'Proposal',
-    owner: { name: 'Liam Johnson', avatar: 'https://picsum.photos/40/40?random=7' },
-  },
-  {
-    dealName: 'Project Titan',
-    companyName: 'Apex Solutions',
-    companyLogo: 'https://picsum.photos/40/40?random=3',
-    amount: '$350,000',
-    stage: 'Qualifying',
-    owner: { name: 'Emma Wilson', avatar: 'https://picsum.photos/40/40?random=8' },
-  },
-  {
-    dealName: 'Fusion Initiative',
-    companyName: 'Momentum Dynamics',
-    companyLogo: 'https://picsum.photos/40/40?random=4',
-    amount: '$450,000',
-    stage: 'Closed Won',
-    owner: { name: 'Noah Brown', avatar: 'https://picsum.photos/40/40?random=9' },
-  },
-  {
-    dealName: 'Project Nebula',
-    companyName: 'Stellar Tech',
-    companyLogo: 'https://picsum.photos/40/40?random=5',
-    amount: '$80,000',
-    stage: 'Prospect',
-    owner: { name: 'Ava Garcia', avatar: 'https://picsum.photos/40/40?random=10' },
-  },
-   {
-    dealName: 'Odyssey Venture',
-    companyName: 'Horizon Enterprises',
-    companyLogo: 'https://picsum.photos/40/40?random=11',
-    amount: '$120,000',
-    stage: 'Proposal',
-    owner: { name: 'Sophia Lee', avatar: 'https://picsum.photos/40/40?random=12' },
-  },
-  {
-    dealName: 'Gateway Project',
-    companyName: 'Pinnacle Corp',
-    companyLogo: 'https://picsum.photos/40/40?random=13',
-    amount: '$200,000',
-    stage: 'Negotiation',
-    owner: { name: 'James White', avatar: 'https://picsum.photos/40/40?random=14' },
-  },
-  {
-    dealName: 'Catalyst Campaign',
-    companyName: 'Vertex Industries',
-    companyLogo: 'https://picsum.photos/40/40?random=15',
-    amount: '$95,000',
-    stage: 'Closed Lost',
-    owner: { name: 'Isabella Rodriguez', avatar: 'https://picsum.photos/40/40?random=16' },
-  },
-];
+type Deal = {
+  _id: string;
+  dealName: string;
+  companyName: string;
+  companyLogo: string;
+  amount: string;
+  stage: string;
+  owner: { name: string; avatar: string };
+};
 
 const stageVariant: { [key: string]: 'default' | 'secondary' | 'destructive' | 'outline' } = {
     'Closed Won': 'default',
@@ -103,9 +66,50 @@ const stageVariant: { [key: string]: 'default' | 'secondary' | 'destructive' | '
     'Closed Lost': 'destructive'
 }
 
-
 export function DealsPage() {
+  const [deals, setDeals] = React.useState<Deal[]>([]);
   const [isNewDealDialogOpen, setIsNewDealDialogOpen] = useState(false);
+  const [editingDeal, setEditingDeal] = useState<Deal | null>(null);
+  const [deletingDeal, setDeletingDeal] = useState<Deal | null>(null);
+  const { toast } = useToast();
+  const [isPending, startTransition] = useTransition();
+
+  React.useEffect(() => {
+    startTransition(async () => {
+      const fetchedDeals = await getDeals();
+      setDeals(fetchedDeals);
+    });
+  }, []);
+
+  const handleDealCreated = (newDeal: Deal) => {
+    startTransition(async () => {
+        const fetchedDeals = await getDeals();
+        setDeals(fetchedDeals);
+    });
+  }
+
+  const handleDealUpdated = (updatedDeal: Deal) => {
+    setEditingDeal(null);
+    startTransition(async () => {
+        const fetchedDeals = await getDeals();
+        setDeals(fetchedDeals);
+    });
+  }
+  
+  const handleDelete = async () => {
+    if (!deletingDeal) return;
+
+    startTransition(async () => {
+      const result = await deleteDeal(deletingDeal._id);
+      if (result.success) {
+        toast({ title: 'Success!', description: result.message });
+        setDeals(deals.filter(d => d._id !== deletingDeal._id));
+        setDeletingDeal(null);
+      } else {
+        toast({ variant: 'destructive', title: 'Error', description: result.message });
+      }
+    });
+  };
 
   return (
     <div className="flex h-full min-h-screen flex-col">
@@ -123,7 +127,7 @@ export function DealsPage() {
         <div className="hidden md:block">
          <UserNav />
         </div>
-         <Button onClick={() => setIsNewDealDialogOpen(true)}>+ New Deal</Button>
+         <Button onClick={() => { setEditingDeal(null); setIsNewDealDialogOpen(true); }}>+ New Deal</Button>
       </header>
       <main className="flex-1 space-y-4 p-4 md:p-8">
         <Card>
@@ -139,11 +143,18 @@ export function DealsPage() {
                   <TableHead className="hidden sm:table-cell">Amount</TableHead>
                   <TableHead className="hidden md:table-cell">Stage</TableHead>
                   <TableHead className="text-right">Owner</TableHead>
+                  <TableHead><span className="sr-only">Actions</span></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {dealsData.map(deal => (
-                  <TableRow key={deal.dealName}>
+                {isPending ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-24 text-center">
+                      Loading...
+                    </TableCell>
+                  </TableRow>
+                ) : deals.map(deal => (
+                  <TableRow key={deal._id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Image
@@ -173,6 +184,24 @@ export function DealsPage() {
                         </Avatar>
                       </div>
                     </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button aria-haspopup="true" size="icon" variant="ghost">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuItem onSelect={() => { setEditingDeal(deal); setIsNewDealDialogOpen(true); }}>Edit</DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onSelect={() => setDeletingDeal(deal)} className="text-destructive">
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -180,7 +209,29 @@ export function DealsPage() {
           </CardContent>
         </Card>
       </main>
-      <NewDealDialog open={isNewDealDialogOpen} onOpenChange={setIsNewDealDialogOpen} />
+      <NewDealDialog 
+        open={isNewDealDialogOpen} 
+        onOpenChange={setIsNewDealDialogOpen} 
+        onDealCreated={handleDealCreated}
+        onDealUpdated={handleDealUpdated}
+        deal={editingDeal}
+      />
+      <AlertDialog open={!!deletingDeal} onOpenChange={(open) => !open && setDeletingDeal(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the deal "{deletingDeal?.dealName}".
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} disabled={isPending}>
+              {isPending ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
