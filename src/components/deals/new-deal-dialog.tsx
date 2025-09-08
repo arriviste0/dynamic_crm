@@ -152,7 +152,7 @@ export function NewDealDialog({ open, onOpenChange }: NewDealDialogProps) {
                       <SelectItem value="Qualifying">Qualifying</SelectItem>
                       <SelectItem value="Proposal">Proposal</SelectItem>
                       <SelectItem value="Negotiation">Negotiation</SelectItem>
-                      <SelectItem value="Closed Won">Closed Won</casting_vote>
+                      <SelectItem value="Closed Won">Closed Won</SelectItem>
                       <SelectItem value="Closed Lost">Closed Lost</SelectItem>
                     </SelectContent>
                   </Select>
