@@ -4,16 +4,16 @@ import {
   Sidebar,
   SidebarInset,
 } from '@/components/ui/sidebar';
-import { SettingsPage } from '@/components/settings/settings-page';
+import { TicketsPage } from '@/components/tickets/tickets-page';
 
-export default function Settings() {
+export default function Tickets() {
   return (
     <SidebarProvider>
       <Sidebar>
         <MainNav />
       </Sidebar>
       <SidebarInset>
-        <SettingsPage />
+        <TicketsPage />
       </SidebarInset>
     </SidebarProvider>
   );

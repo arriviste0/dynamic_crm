@@ -41,7 +41,7 @@ export function ProfilePage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" defaultValue="admin@metatenant.com" />
+                <Input id="email" type="email" defaultValue="admin@flexcrm.com" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="role">Role</Label>

@@ -3,8 +3,8 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'MetaTenant',
-  description: 'A multi-tenant, metadata-driven CRM',
+  title: 'Flex CRM',
+  description: 'A flexible CRM for any industry',
 };
 
 export default function RootLayout({

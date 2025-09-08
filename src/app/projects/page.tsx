@@ -4,16 +4,16 @@ import {
   Sidebar,
   SidebarInset,
 } from '@/components/ui/sidebar';
-import { SettingsPage } from '@/components/settings/settings-page';
+import { ProjectsPage } from '@/components/projects/projects-page';
 
-export default function Settings() {
+export default function Projects() {
   return (
     <SidebarProvider>
       <Sidebar>
         <MainNav />
       </Sidebar>
       <SidebarInset>
-        <SettingsPage />
+        <ProjectsPage />
       </SidebarInset>
     </SidebarProvider>
   );

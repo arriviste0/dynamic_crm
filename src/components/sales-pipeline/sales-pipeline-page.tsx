@@ -104,7 +104,7 @@ export function SalesPipelinePage() {
          <UserNav />
         </div>
          <Button>+ New Deal</Button>
-      </header>
+      </header>      
       <main className="flex-1 space-x-4 p-4 md:p-8 flex overflow-x-auto">
         {stages.map(stage => (
             <PipelineColumn 

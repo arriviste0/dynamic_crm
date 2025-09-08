@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 export function SettingsPage() {
   return (
@@ -27,60 +28,86 @@ export function SettingsPage() {
         </div>
       </header>
       <main className="flex-1 space-y-4 p-4 md:p-8">
-        <div className="grid gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Profile</CardTitle>
-              <CardDescription>Update your personal information.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input id="name" defaultValue="Admin User" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" defaultValue="admin@metatenant.com" />
-              </div>
-              <Button>Save</Button>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Preferences</CardTitle>
-              <CardDescription>Customize your experience.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="language">Language</Label>
-                <Select>
-                  <SelectTrigger id="language">
-                    <SelectValue placeholder="Select language" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="en">English</SelectItem>
-                    <SelectItem value="es">Spanish</SelectItem>
-                    <SelectItem value="fr">French</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="theme">Theme</Label>
-                <Select>
-                  <SelectTrigger id="theme">
-                    <SelectValue placeholder="Select theme" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="light">Light</SelectItem>
-                    <SelectItem value="dark">Dark</SelectItem>
-                    <SelectItem value="system">System</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <Button>Save</Button>
-            </CardContent>
-          </Card>
-        </div>
+        <Tabs defaultValue="profile">
+          <TabsList>
+            <TabsTrigger value="profile">Profile</TabsTrigger>
+            <TabsTrigger value="roles">Roles & Permissions</TabsTrigger>
+            <TabsTrigger value="fields">Custom Fields</TabsTrigger>
+            <TabsTrigger value="pipelines">Pipelines</TabsTrigger>
+            <TabsTrigger value="branding">Branding</TabsTrigger>
+          </TabsList>
+          <TabsContent value="profile">
+            <Card>
+              <CardHeader>
+                <CardTitle>Profile</CardTitle>
+                <CardDescription>Update your personal information.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Name</Label>
+                  <Input id="name" defaultValue="Admin User" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input id="email" type="email" defaultValue="admin@flexcrm.com" />
+                </div>
+                <Button>Save</Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+           <TabsContent value="roles">
+            <Card>
+              <CardHeader>
+                <CardTitle>Roles & Permissions</CardTitle>
+                <CardDescription>Manage user roles and what they can access.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p>Role management coming soon.</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+           <TabsContent value="fields">
+            <Card>
+              <CardHeader>
+                <CardTitle>Custom Fields</CardTitle>
+                <CardDescription>Add custom fields to your modules.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p>Custom field management coming soon.</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+           <TabsContent value="pipelines">
+            <Card>
+              <CardHeader>
+                <CardTitle>Pipelines</CardTitle>
+                <CardDescription>Customize stages for your sales and project pipelines.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p>Pipeline customization coming soon.</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+           <TabsContent value="branding">
+            <Card>
+              <CardHeader>
+                <CardTitle>Branding</CardTitle>
+                <CardDescription>Customize the look and feel of your CRM.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                 <div className="space-y-2">
+                  <Label htmlFor="appName">App Name</Label>
+                  <Input id="appName" defaultValue="Flex CRM" />
+                </div>
+                 <div className="space-y-2">
+                  <Label htmlFor="logo">Logo</Label>
+                  <Input id="logo" type="file" />
+                </div>
+                <Button>Save</Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
