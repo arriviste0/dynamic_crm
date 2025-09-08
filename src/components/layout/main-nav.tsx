@@ -29,9 +29,11 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { UserNav } from './user-nav';
 import React from 'react';
 import { Card } from '../ui/card';
+import { usePathname } from 'next/navigation';
 
 export function MainNav() {
   const [open, setOpen] = React.useState({ deals: false });
+  const pathname = usePathname();
 
   return (
     <>
@@ -44,19 +46,19 @@ export function MainNav() {
       <SidebarContent className="p-2">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton href="#" isActive>
+            <SidebarMenuButton href="/" isActive={pathname === '/'}>
               <LayoutDashboard />
               <span>Dashboard</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton href="#">
+            <SidebarMenuButton href="/accounts" isActive={pathname.startsWith('/accounts')}>
               <Building2 />
               <span>Accounts</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton href="#">
+            <SidebarMenuButton href="/contacts" isActive={pathname.startsWith('/contacts')}>
               <Users />
               <span>Contacts</span>
             </SidebarMenuButton>
@@ -64,6 +66,7 @@ export function MainNav() {
           <SidebarMenuItem>
             <SidebarMenuButton
               onClick={() => setOpen(prev => ({ ...prev, deals: !prev.deals }))}
+              isActive={pathname.startsWith('/deals')}
             >
               <Handshake />
               <span>Deals</span>
@@ -76,10 +79,10 @@ export function MainNav() {
             {open.deals && (
               <SidebarMenuSub>
                 <SidebarMenuSubItem>
-                  <SidebarMenuSubButton href="#">All Deals</SidebarMenuSubButton>
+                  <SidebarMenuSubButton href="/deals" isActive={pathname === '/deals'}>All Deals</SidebarMenuSubButton>
                 </SidebarMenuSubItem>
                 <SidebarMenuSubItem>
-                  <SidebarMenuSubButton href="#" isActive>
+                  <SidebarMenuSubButton href="#" >
                     Sales Pipeline
                   </SidebarMenuSubButton>
                 </SidebarMenuSubItem>
