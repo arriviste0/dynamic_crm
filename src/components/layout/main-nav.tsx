@@ -18,6 +18,7 @@ import {
   ChevronDown,
   CircleHelp,
   Cog,
+  ConciergeBell,
   DollarSign,
   Handshake,
   LayoutDashboard,
@@ -66,7 +67,7 @@ export function MainNav() {
           <SidebarMenuItem>
             <SidebarMenuButton
               onClick={() => setOpen(prev => ({ ...prev, deals: !prev.deals }))}
-              isActive={pathname.startsWith('/deals')}
+              isActive={pathname.startsWith('/deals') || pathname.startsWith('/sales-pipeline')}
             >
               <Handshake />
               <span>Deals</span>
@@ -82,20 +83,21 @@ export function MainNav() {
                   <SidebarMenuSubButton href="/deals" isActive={pathname === '/deals'}>All Deals</SidebarMenuSubButton>
                 </SidebarMenuSubItem>
                 <SidebarMenuSubItem>
-                  <SidebarMenuSubButton href="#" >
+                  <SidebarMenuSubButton href="/sales-pipeline" isActive={pathname === '/sales-pipeline'}>
                     Sales Pipeline
-                  </SidebarMenuSubButton>
-                </SidebarMenuSubItem>
-                <SidebarMenuSubItem>
-                  <SidebarMenuSubButton href="#">
-                    Service Pipeline
                   </SidebarMenuSubButton>
                 </SidebarMenuSubItem>
               </SidebarMenuSub>
             )}
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton href="#">
+            <SidebarMenuButton href="/services" isActive={pathname.startsWith('/services')}>
+              <ConciergeBell />
+              <span>Services</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton href="/invoices" isActive={pathname.startsWith('/invoices')}>
               <DollarSign />
               <span>Invoices</span>
             </SidebarMenuButton>
