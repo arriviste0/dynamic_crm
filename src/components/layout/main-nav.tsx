@@ -126,6 +126,12 @@ export function MainNav() {
             )}
           </SidebarMenuItem>
           <SidebarMenuItem>
+            <SidebarMenuButton href="/services" isActive={pathname.startsWith('/services')}>
+              <ConciergeBell />
+              <span>Services</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
             <SidebarMenuButton href="/quotes" isActive={pathname.startsWith('/quotes')}>
               <FileText />
               <span>Quotes</span>
@@ -152,6 +158,13 @@ export function MainNav() {
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter className="p-2 space-y-2">
+        <Card className="p-3">
+            <div className="mb-2">
+                <h3 className="text-sm font-semibold">Upgrade to PRO</h3>
+                <p className="text-xs text-muted-foreground">Unlock all features and get unlimited support.</p>
+            </div>
+            <Button size="sm" className="w-full">Upgrade</Button>
+        </Card>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton href="/settings" isActive={pathname.startsWith('/settings')}>
