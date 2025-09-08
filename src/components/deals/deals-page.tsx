@@ -1,3 +1,6 @@
+
+'use client';
+
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { SidebarTrigger } from '../ui/sidebar';
@@ -21,8 +24,10 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import Image from 'next/image';
+import React, { useState } from 'react';
+import { NewDealDialog } from './new-deal-dialog';
 
-const deals = [
+const dealsData = [
   {
     dealName: 'Project Phoenix',
     companyName: 'Innovate Inc.',
@@ -100,6 +105,8 @@ const stageVariant: { [key: string]: 'default' | 'secondary' | 'destructive' | '
 
 
 export function DealsPage() {
+  const [isNewDealDialogOpen, setIsNewDealDialogOpen] = useState(false);
+
   return (
     <div className="flex h-full min-h-screen flex-col">
       <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b-2 bg-background/80 px-4 backdrop-blur-sm md:px-6">
@@ -116,7 +123,7 @@ export function DealsPage() {
         <div className="hidden md:block">
          <UserNav />
         </div>
-         <Button>+ New Deal</Button>
+         <Button onClick={() => setIsNewDealDialogOpen(true)}>+ New Deal</Button>
       </header>
       <main className="flex-1 space-y-4 p-4 md:p-8">
         <Card>
@@ -135,7 +142,7 @@ export function DealsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {deals.map(deal => (
+                {dealsData.map(deal => (
                   <TableRow key={deal.dealName}>
                     <TableCell>
                       <div className="flex items-center gap-3">
@@ -173,6 +180,7 @@ export function DealsPage() {
           </CardContent>
         </Card>
       </main>
+      <NewDealDialog open={isNewDealDialogOpen} onOpenChange={setIsNewDealDialogOpen} />
     </div>
   );
 }

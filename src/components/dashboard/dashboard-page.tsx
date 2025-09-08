@@ -1,3 +1,6 @@
+
+'use client';
+
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { KpiCard } from './kpi-card';
@@ -9,6 +12,7 @@ import { DealsActivity } from './deals-activity';
 import { SidebarTrigger } from '../ui/sidebar';
 import { UserNav } from '../layout/user-nav';
 import { Button } from '../ui/button';
+import React from 'react';
 
 export function DashboardPage() {
   return (
