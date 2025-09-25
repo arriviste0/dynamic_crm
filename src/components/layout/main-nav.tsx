@@ -55,21 +55,27 @@ export function MainNav() {
       <SidebarContent className="p-2">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton href="/" isActive={pathname === '/'}>
-              <LayoutDashboard />
-              <span>Dashboard</span>
+            <SidebarMenuButton asChild isActive={pathname === '/'}>
+              <Link href="/">
+                <LayoutDashboard />
+                <span>Dashboard</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton href="/accounts" isActive={pathname.startsWith('/accounts')}>
-              <Building2 />
-              <span>Accounts</span>
+            <SidebarMenuButton asChild isActive={pathname.startsWith('/accounts')}>
+              <Link href="/accounts">
+                <Building2 />
+                <span>Accounts</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton href="/contacts" isActive={pathname.startsWith('/contacts')}>
-              <Users />
-              <span>Contacts</span>
+            <SidebarMenuButton asChild isActive={pathname.startsWith('/contacts')}>
+              <Link href="/contacts">
+                <Users />
+                <span>Contacts</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
@@ -88,20 +94,24 @@ export function MainNav() {
             {open.deals && (
               <SidebarMenuSub>
                 <SidebarMenuSubItem>
-                  <SidebarMenuSubButton href="/deals" isActive={pathname === '/deals'}>All Deals</SidebarMenuSubButton>
+                  <SidebarMenuSubButton asChild isActive={pathname === '/deals'}>
+                    <Link href="/deals">All Deals</Link>
+                  </SidebarMenuSubButton>
                 </SidebarMenuSubItem>
                 <SidebarMenuSubItem>
-                  <SidebarMenuSubButton href="/sales-pipeline" isActive={pathname === '/sales-pipeline'}>
-                    Sales Pipeline
+                  <SidebarMenuSubButton asChild isActive={pathname === '/sales-pipeline'}>
+                    <Link href="/sales-pipeline">Sales Pipeline</Link>
                   </SidebarMenuSubButton>
                 </SidebarMenuSubItem>
               </SidebarMenuSub>
             )}
           </SidebarMenuItem>
            <SidebarMenuItem>
-            <SidebarMenuButton href="/activities" isActive={pathname.startsWith('/activities')}>
-              <Inbox />
-              <span>Activities</span>
+            <SidebarMenuButton asChild isActive={pathname.startsWith('/activities')}>
+              <Link href="/activities">
+                <Inbox />
+                <span>Activities</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
            <SidebarMenuItem>
@@ -120,39 +130,67 @@ export function MainNav() {
             {open.inventory && (
               <SidebarMenuSub>
                 <SidebarMenuSubItem>
-                  <SidebarMenuSubButton href="/inventory" isActive={pathname === '/inventory'}>Products</SidebarMenuSubButton>
+                  <SidebarMenuSubButton asChild isActive={pathname === '/inventory'}>
+                    <Link href="/inventory">Products</Link>
+                  </SidebarMenuSubButton>
                 </SidebarMenuSubItem>
               </SidebarMenuSub>
             )}
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton href="/services" isActive={pathname.startsWith('/services')}>
-              <ConciergeBell />
-              <span>Services</span>
+            <SidebarMenuButton asChild isActive={pathname.startsWith('/services')}>
+              <Link href="/services">
+                <ConciergeBell />
+                <span>Services</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton href="/quotes" isActive={pathname.startsWith('/quotes')}>
-              <FileText />
-              <span>Quotes</span>
+            <SidebarMenuButton asChild isActive={pathname.startsWith('/quotes')}>
+              <Link href="/quotes">
+                <FileText />
+                <span>Quotes</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton href="/invoices" isActive={pathname.startsWith('/invoices')}>
-              <DollarSign />
-              <span>Invoices</span>
+            <SidebarMenuButton asChild isActive={pathname.startsWith('/invoices')}>
+              <Link href="/invoices">
+                <DollarSign />
+                <span>Invoices</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton href="/tickets" isActive={pathname.startsWith('/tickets')}>
-              <Ticket />
-              <span>Tickets</span>
+            <SidebarMenuButton asChild isActive={pathname.startsWith('/tickets')}>
+              <Link href="/tickets">
+                <Ticket />
+                <span>Tickets</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton href="/projects" isActive={pathname.startsWith('/projects')}>
-              <Package />
-              <span>Projects</span>
+            <SidebarMenuButton asChild isActive={pathname.startsWith('/projects')}>
+              <Link href="/projects">
+                <Package />
+                <span>Projects</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild isActive={pathname.startsWith('/billing')}>
+              <Link href="/billing">
+                <CreditCard />
+                <span>Billing</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild isActive={pathname.startsWith('/support')}>
+              <Link href="/support">
+                <CircleHelp />
+                <span>Support</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -167,9 +205,19 @@ export function MainNav() {
         </Card>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton href="/settings" isActive={pathname.startsWith('/settings')}>
-              <Cog />
-              <span>Settings</span>
+            <SidebarMenuButton asChild isActive={pathname.startsWith('/profile')}>
+              <Link href="/profile">
+                <Users />
+                <span>Profile</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild isActive={pathname.startsWith('/settings')}>
+              <Link href="/settings">
+                <Cog />
+                <span>Settings</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

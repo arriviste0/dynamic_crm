@@ -15,11 +15,11 @@ import {
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 
 const chartData = [
-  { stage: 'Prospect', deals: 124 },
-  { stage: 'Qualifying', deals: 87 },
-  { stage: 'Proposal', deals: 56 },
-  { stage: 'Negotiation', deals: 32 },
-  { stage: 'Closed Won', deals: 25 },
+  { stage: 'Prospect', deals: 0 },
+  { stage: 'Qualifying', deals: 0 },
+  { stage: 'Proposal', deals: 0 },
+  { stage: 'Negotiation', deals: 0 },
+  { stage: 'Closed Won', deals: 0 },
 ];
 
 const chartConfig = {

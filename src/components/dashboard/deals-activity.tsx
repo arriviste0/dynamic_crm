@@ -17,48 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import Image from 'next/image';
 
-const deals = [
-  {
-    dealName: 'Project Phoenix',
-    companyName: 'Innovate Inc.',
-    companyLogo: 'https://picsum.photos/40/40?random=1',
-    amount: '$250,000',
-    stage: 'Negotiation',
-    owner: { name: 'Olivia Martin', avatar: 'https://picsum.photos/40/40?random=6' },
-  },
-  {
-    dealName: 'Quantum Leap',
-    companyName: 'Synergy Corp',
-    companyLogo: 'https://picsum.photos/40/40?random=2',
-    amount: '$150,000',
-    stage: 'Proposal',
-    owner: { name: 'Liam Johnson', avatar: 'https://picsum.photos/40/40?random=7' },
-  },
-  {
-    dealName: 'Project Titan',
-    companyName: 'Apex Solutions',
-    companyLogo: 'https://picsum.photos/40/40?random=3',
-    amount: '$350,000',
-    stage: 'Qualifying',
-    owner: { name: 'Emma Wilson', avatar: 'https://picsum.photos/40/40?random=8' },
-  },
-  {
-    dealName: 'Fusion Initiative',
-    companyName: 'Momentum Dynamics',
-    companyLogo: 'https://picsum.photos/40/40?random=4',
-    amount: '$450,000',
-    stage: 'Closed Won',
-    owner: { name: 'Noah Brown', avatar: 'https://picsum.photos/40/40?random=9' },
-  },
-  {
-    dealName: 'Project Nebula',
-    companyName: 'Stellar Tech',
-    companyLogo: 'https://picsum.photos/40/40?random=5',
-    amount: '$80,000',
-    stage: 'Prospect',
-    owner: { name: 'Ava Garcia', avatar: 'https://picsum.photos/40/40?random=10' },
-  },
-];
+const deals = [];
 
 const stageVariant: { [key: string]: 'default' | 'secondary' | 'destructive' | 'outline' } = {
     'Closed Won': 'default',
@@ -111,10 +70,9 @@ export function DealsActivity() {
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-2">
-                    <span className="hidden lg:inline">{deal.owner.name}</span>
+                    <span className="hidden lg:inline text-muted-foreground">No Owner</span>
                     <Avatar className="h-8 w-8">
-                       <AvatarImage src={deal.owner.avatar} alt={deal.owner.name} data-ai-hint="user avatar" />
-                       <AvatarFallback>{deal.owner.name.charAt(0)}</AvatarFallback>
+                      <AvatarFallback>?</AvatarFallback>
                     </Avatar>
                   </div>
                 </TableCell>

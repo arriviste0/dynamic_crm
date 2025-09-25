@@ -15,12 +15,12 @@ import {
 import { Line, LineChart, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts';
 
 const chartData = [
-  { month: 'January', income: 1860, outcome: 800 },
-  { month: 'February', income: 3050, outcome: 2000 },
-  { month: 'March', income: 2370, outcome: 1200 },
-  { month: 'April', income: 730, outcome: 1900 },
-  { month: 'May', income: 2090, outcome: 1300 },
-  { month: 'June', income: 2140, outcome: 1400 },
+  { month: 'January', income: 0, outcome: 0 },
+  { month: 'February', income: 0, outcome: 0 },
+  { month: 'March', income: 0, outcome: 0 },
+  { month: 'April', income: 0, outcome: 0 },
+  { month: 'May', income: 0, outcome: 0 },
+  { month: 'June', income: 0, outcome: 0 },
 ];
 
 const chartConfig = {

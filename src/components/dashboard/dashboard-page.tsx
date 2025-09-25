@@ -37,25 +37,25 @@ export function DashboardPage() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <KpiCard
             title="Total Revenue"
-            value="$45,231.89"
+            value="$0.00"
             change="+20.1% from last month"
             icon="dollar"
           />
           <KpiCard
             title="New Deals"
-            value="+125"
+            value="0"
             change="+18.2% from last month"
             icon="handshake"
           />
           <KpiCard
             title="Active Tickets"
-            value="573"
+            value="0"
             change="+19% from last month"
             icon="ticket"
           />
           <KpiCard
             title="Conversion Rate"
-            value="25.4%"
+            value="0%"
             change="+5.4% from last month"
             icon="target"
           />

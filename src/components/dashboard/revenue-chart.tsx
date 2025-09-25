@@ -15,12 +15,12 @@ import {
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 
 const chartData = [
-  { month: 'Jan', revenue: 18600 },
-  { month: 'Feb', revenue: 30500 },
-  { month: 'Mar', revenue: 23700 },
-  { month: 'Apr', revenue: 7300 },
-  { month: 'May', revenue: 20900 },
-  { month: 'Jun', revenue: 21400 },
+  { month: 'Jan', revenue: 0 },
+  { month: 'Feb', revenue: 0 },
+  { month: 'Mar', revenue: 0 },
+  { month: 'Apr', revenue: 0 },
+  { month: 'May', revenue: 0 },
+  { month: 'Jun', revenue: 0 },
 ];
 
 const chartConfig = {

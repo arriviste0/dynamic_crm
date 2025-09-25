@@ -219,15 +219,15 @@ export function DealsPage() {
       <AlertDialog open={!!deletingDeal} onOpenChange={(open) => !open && setDeletingDeal(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>Delete Deal</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the deal "{deletingDeal?.dealName}".
+              Are you sure you want to delete the deal "{deletingDeal?.dealName}"? This action cannot be undone and will permanently remove all associated data.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} disabled={isPending}>
-              {isPending ? 'Deleting...' : 'Delete'}
+              {isPending ? 'Deleting...' : 'Delete Deal'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

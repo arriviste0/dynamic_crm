@@ -14,7 +14,7 @@ import {
 import { PolarAngleAxis, RadialBar, RadialBarChart } from 'recharts';
 
 const chartDataDeals = [{ name: 'Deals', value: 78, fill: 'hsl(var(--chart-2))' }];
-const chartDataConversion = [{ name: 'Conversion', value: 25.4, fill: 'hsl(var(--chart-3))' }];
+const chartDataConversion = [{ name: 'Conversion', value: 0, fill: 'hsl(var(--chart-3))' }];
 
 export function GaugeChartWidget() {
   return (
@@ -47,7 +47,7 @@ export function GaugeChartWidget() {
             </RadialBarChart>
           </ChartContainer>
           <p className="text-center text-sm font-medium mt-2">Deals Won</p>
-          <p className="text-center text-xl font-bold">78/100</p>
+          <p className="text-center text-xl font-bold">0/100</p>
         </div>
         <div className="flex flex-col items-center">
           <ChartContainer config={{}} className="h-[120px] w-[120px]">
@@ -72,7 +72,7 @@ export function GaugeChartWidget() {
             </RadialBarChart>
           </ChartContainer>
           <p className="text-center text-sm font-medium mt-2">Conversion Rate</p>
-          <p className="text-center text-xl font-bold">25.4%</p>
+          <p className="text-center text-xl font-bold">0%</p>
         </div>
       </CardContent>
     </Card>

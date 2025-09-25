@@ -6,6 +6,73 @@ import { UserNav } from '../layout/user-nav';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import React, { useState } from 'react';
+
+// --- Custom Fields Types and Component ---
+type CustomField = { name: string; type: string; module: string };
+
+function CustomFieldsManager() {
+  const [fields, setFields] = useState<CustomField[]>([]);
+  const [newField, setNewField] = useState<CustomField>({ name: '', type: 'text', module: 'deals' });
+
+  const addField = () => {
+    if (!newField.name.trim()) return;
+    setFields([...fields, newField]);
+    setNewField({ name: '', type: 'text', module: 'deals' });
+  };
+
+  const removeField = (idx: number) => {
+    setFields(fields.filter((_, i) => i !== idx));
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-2 flex-wrap">
+        <Input
+          placeholder="Field name"
+          value={newField.name}
+          onChange={e => setNewField(f => ({ ...f, name: e.target.value }))}
+        />
+        <select
+          className="border rounded px-2 py-1"
+          value={newField.type}
+          onChange={e => setNewField(f => ({ ...f, type: e.target.value }))}
+        >
+          <option value="text">Text</option>
+          <option value="number">Number</option>
+          <option value="date">Date</option>
+        </select>
+        <select
+          className="border rounded px-2 py-1"
+          value={newField.module}
+          onChange={e => setNewField(f => ({ ...f, module: e.target.value }))}
+        >
+          <option value="deals">Deals</option>
+          <option value="contacts">Contacts</option>
+          <option value="accounts">Accounts</option>
+          <option value="projects">Projects</option>
+          <option value="tickets">Tickets</option>
+          <option value="invoices">Invoices</option>
+          <option value="quotes">Quotes</option>
+          <option value="services">Services</option>
+        </select>
+        <Button onClick={addField} type="button">Add Field</Button>
+      </div>
+      <ul className="space-y-2">
+        {fields.length === 0 && <li className="text-muted-foreground">No custom fields yet.</li>}
+        {fields.map((field, idx) => (
+          <li key={idx} className="flex items-center gap-2">
+            <span className="font-mono">{field.name}</span>
+            <span className="text-xs text-muted-foreground">({field.type}, {field.module})</span>
+            <Button variant="destructive" size="sm" onClick={() => removeField(idx)} type="button">Delete</Button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -73,7 +140,7 @@ export function SettingsPage() {
                 <CardDescription>Add custom fields to your modules.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p>Custom field management coming soon.</p>
+                <CustomFieldsManager />
               </CardContent>
             </Card>
           </TabsContent>
