@@ -7,6 +7,7 @@ import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import React, { useState } from 'react';
+import { formatBusinessModelLabel, getBusinessModels, getDefaultBusinessModel, saveBusinessModels, saveDefaultBusinessModel } from '@/lib/business-models';
 
 // --- Custom Fields Types and Component ---
 type CustomField = { name: string; type: string; module: string };
@@ -112,6 +113,112 @@ function CustomFieldsManager() {
   );
 }
 
+type BusinessModelState = {
+  models: string[];
+  defaultModel: string;
+};
+
+function BusinessModelsManager() {
+  const [state, setState] = useState<BusinessModelState>({ models: [], defaultModel: '' });
+  const [newModel, setNewModel] = useState('');
+
+  React.useEffect(() => {
+    const models = getBusinessModels();
+    const defaultModel = getDefaultBusinessModel();
+    setState({
+      models,
+      defaultModel: models.includes(defaultModel) ? defaultModel : models[0] || defaultModel,
+    });
+  }, []);
+
+  const addModel = () => {
+    const trimmed = newModel.trim();
+    if (!trimmed) return;
+    if (state.models.includes(trimmed)) return;
+    const updated = [...state.models, trimmed];
+    saveBusinessModels(updated);
+    setState(prev => ({
+      models: updated,
+      defaultModel: prev.defaultModel || trimmed,
+    }));
+    if (!state.defaultModel) {
+      saveDefaultBusinessModel(trimmed);
+    }
+    setNewModel('');
+  };
+
+  const removeModel = (value: string) => {
+    const updated = state.models.filter(model => model !== value);
+    const nextDefault = updated[0] || '';
+    saveBusinessModels(updated);
+    if (value === state.defaultModel) {
+      saveDefaultBusinessModel(nextDefault);
+    }
+    setState({
+      models: updated,
+      defaultModel: value === state.defaultModel ? nextDefault : state.defaultModel,
+    });
+  };
+
+  const setDefaultModel = (value: string) => {
+    saveDefaultBusinessModel(value);
+    setState(prev => ({ ...prev, defaultModel: value }));
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-2 flex-wrap items-end">
+        <div className="flex-1 min-w-[200px]">
+          <label className="text-sm font-medium block mb-1">Business Type</label>
+          <Input
+            placeholder="e.g., B2B2C, SaaS, Marketplace"
+            value={newModel}
+            onChange={e => setNewModel(e.target.value)}
+          />
+        </div>
+        <Button onClick={addModel} type="button">Add Type</Button>
+      </div>
+      <div className="space-y-2">
+        <label className="text-sm font-medium block">Default Business Type</label>
+        <Select value={state.defaultModel} onValueChange={setDefaultModel}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select a default" />
+          </SelectTrigger>
+          <SelectContent>
+            {state.models.map(model => (
+              <SelectItem key={model} value={model}>
+                {formatBusinessModelLabel(model)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <ul className="space-y-2">
+        {state.models.length === 0 && <li className="text-muted-foreground">No business types yet.</li>}
+        {state.models.map(model => (
+          <li key={model} className="flex items-center justify-between p-2 bg-muted rounded">
+            <div className="flex-1">
+              <span className="font-mono font-medium">{formatBusinessModelLabel(model)}</span>
+              {model === state.defaultModel && (
+                <span className="text-xs text-muted-foreground ml-2">(default)</span>
+              )}
+            </div>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => removeModel(model)}
+              type="button"
+              disabled={state.models.length === 1}
+            >
+              Delete
+            </Button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 
 import { Label } from '@/components/ui/label';
 import {
@@ -140,6 +247,7 @@ export function SettingsPage() {
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="roles">Roles & Permissions</TabsTrigger>
             <TabsTrigger value="fields">Custom Fields</TabsTrigger>
+            <TabsTrigger value="business">Business Types</TabsTrigger>
             <TabsTrigger value="pipelines">Pipelines</TabsTrigger>
             <TabsTrigger value="branding">Branding</TabsTrigger>
           </TabsList>
@@ -181,6 +289,17 @@ export function SettingsPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <CustomFieldsManager />
+              </CardContent>
+            </Card>
+          </TabsContent>
+          <TabsContent value="business">
+            <Card>
+              <CardHeader>
+                <CardTitle>Business Types</CardTitle>
+                <CardDescription>Define and set defaults for your business models.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <BusinessModelsManager />
               </CardContent>
             </Card>
           </TabsContent>

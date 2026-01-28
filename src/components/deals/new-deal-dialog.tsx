@@ -31,6 +31,7 @@ import * as z from 'zod';
 import { createDeal, updateDeal } from '@/app/actions/deals';
 import { useToast } from '@/hooks/use-toast';
 import React, { useEffect, useState } from 'react';
+import { formatBusinessModelLabel, getBusinessModels, getDefaultBusinessModel } from '@/lib/business-models';
 // Helper to load and save custom fields in localStorage (for demo; replace with API/backend later)
 function loadCustomFields() {
   if (typeof window !== 'undefined') {
@@ -51,6 +52,7 @@ const dealSchema = z.object({
   dealName: z.string().min(2, 'Deal name must be at least 2 characters.'),
   companyName: z.string().min(2, 'Company name must be at least 2 characters.'),
   amount: z.string().regex(/^\$?\d+(,\d{3})*(\.\d{2})?$/, 'Please enter a valid amount.'),
+  businessModel: z.string().min(1, 'Business model is required.'),
   stage: z.enum(['Prospect', 'Qualifying', 'Proposal', 'Negotiation', 'Closed Won', 'Closed Lost']),
 });
 
@@ -59,6 +61,7 @@ type Deal = {
   dealName: string;
   companyName: string;
   amount: string;
+  businessModel?: string;
   stage: string;
 };
 
@@ -74,6 +77,7 @@ export function NewDealDialog({ open, onOpenChange, onDealCreated, onDealUpdated
   const [customFields, setCustomFields] = useState<{ name: string; type: string; module: string }[]>([]);
   const [showAddField, setShowAddField] = useState(false);
   const [newField, setNewField] = useState<{ name: string; type: string }>({ name: '', type: 'text' });
+  const [businessModels, setBusinessModels] = useState<string[]>([]);
   const { toast } = useToast();
   // Extend form schema to include custom fields dynamically
   const customFieldDefaults = customFields.filter(f => f.module === 'deals').reduce((acc, f) => ({ ...acc, [f.name]: '' }), {} as Record<string, string>);
@@ -83,6 +87,7 @@ export function NewDealDialog({ open, onOpenChange, onDealCreated, onDealUpdated
       dealName: '',
       companyName: '',
       amount: '',
+      businessModel: getDefaultBusinessModel(),
       stage: 'Prospect',
       ...customFieldDefaults,
     },
@@ -90,22 +95,32 @@ export function NewDealDialog({ open, onOpenChange, onDealCreated, onDealUpdated
 
   useEffect(() => {
     setCustomFields(loadCustomFields());
+    setBusinessModels(getBusinessModels());
   }, [open]);
 
   useEffect(() => {
     if (deal) {
-      form.reset({ ...deal, ...customFieldDefaults });
+      form.reset({ ...deal, businessModel: deal.businessModel || getDefaultBusinessModel(), ...customFieldDefaults });
     } else {
       form.reset({
         dealName: '',
         companyName: '',
         amount: '',
+        businessModel: getDefaultBusinessModel(),
         stage: 'Prospect',
         ...customFieldDefaults,
       });
     }
     // eslint-disable-next-line
   }, [deal, form, open, customFields]);
+
+  useEffect(() => {
+    if (!businessModels.length) return;
+    const currentValue = form.getValues('businessModel');
+    if (!currentValue || !businessModels.includes(currentValue)) {
+      form.setValue('businessModel', businessModels[0], { shouldValidate: true });
+    }
+  }, [businessModels, form]);
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -200,6 +215,30 @@ export function NewDealDialog({ open, onOpenChange, onDealCreated, onDealUpdated
                   <FormControl>
                     <Input placeholder="$250,000" {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="businessModel"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Business Model</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select business model" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {businessModels.map(model => (
+                        <SelectItem key={model} value={model}>
+                          {formatBusinessModelLabel(model)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

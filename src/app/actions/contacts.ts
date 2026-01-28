@@ -13,6 +13,7 @@ const contactSchema = z.object({
   phone: z.string().min(10, 'Phone number must be at least 10 characters.'),
   jobTitle: z.string().min(2, 'Job title must be at least 2 characters.'),
   company: z.string().min(2, 'Company must be at least 2 characters.'),
+  businessModel: z.string().min(1, 'Business model is required.'),
   department: z.string().optional(),
   address: z.object({
     street: z.string().optional(),
@@ -54,7 +55,7 @@ export async function createContact(formData: FormData) {
     // Extract custom fields from form data
     const standardFields = [
       'firstName', 'lastName', 'email', 'phone', 'jobTitle', 'company', 'department',
-      'address.street', 'address.city', 'address.state', 'address.zipCode', 'address.country',
+      'businessModel', 'address.street', 'address.city', 'address.state', 'address.zipCode', 'address.country',
       'status', 'notes'
     ];
     
@@ -140,7 +141,7 @@ export async function updateContact(id: string, formData: FormData) {
     // Extract custom fields from form data
     const standardFields = [
       'firstName', 'lastName', 'email', 'phone', 'jobTitle', 'company', 'department',
-      'address.street', 'address.city', 'address.state', 'address.zipCode', 'address.country',
+      'businessModel', 'address.street', 'address.city', 'address.state', 'address.zipCode', 'address.country',
       'status', 'notes'
     ];
     

@@ -47,6 +47,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Account } from '@/lib/types';
+import { formatBusinessModelLabel } from '@/lib/business-models';
 
 const statusVariant: { [key: string]: 'default' | 'secondary' | 'destructive' | 'outline' } = {
   'Active': 'default',
@@ -137,7 +138,8 @@ export function AccountsPage() {
   const filteredAccounts = accounts.filter(account =>
     account.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     account.industry.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    account.email.toLowerCase().includes(searchTerm.toLowerCase())
+    account.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (account.businessModel || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -195,6 +197,7 @@ export function AccountsPage() {
                   <TableHead>Company</TableHead>
                   <TableHead className="hidden sm:table-cell">Industry</TableHead>
                   <TableHead className="hidden md:table-cell">Status</TableHead>
+                  <TableHead className="hidden lg:table-cell">Business Model</TableHead>
                   <TableHead className="hidden lg:table-cell">Contact</TableHead>
                   <TableHead className="text-right">Owner</TableHead>
                   <TableHead><span className="sr-only">Actions</span></TableHead>
@@ -203,13 +206,13 @@ export function AccountsPage() {
               <TableBody>
                 {isPending ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center">
+                    <TableCell colSpan={7} className="h-24 text-center">
                       Loading...
                     </TableCell>
                   </TableRow>
                 ) : filteredAccounts.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center">
+                    <TableCell colSpan={7} className="h-24 text-center">
                       No accounts found.
                     </TableCell>
                   </TableRow>
@@ -235,6 +238,13 @@ export function AccountsPage() {
                       <TableCell className="hidden sm:table-cell">{account.industry}</TableCell>
                       <TableCell className="hidden md:table-cell">
                         <Badge variant={statusVariant[account.status] || 'outline'}>{account.status}</Badge>
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                        {account.businessModel ? (
+                          <Badge variant="secondary">{formatBusinessModelLabel(account.businessModel)}</Badge>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
                       </TableCell>
                       <TableCell className="hidden lg:table-cell">
                         <div className="text-sm">

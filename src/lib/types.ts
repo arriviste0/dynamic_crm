@@ -9,6 +9,7 @@ export interface BaseEntity {
 export interface Account extends BaseEntity {
   companyName: string;
   industry: string;
+  businessModel?: string;
   website: string;
   phone: string;
   email: string;
@@ -36,6 +37,7 @@ export interface Contact extends BaseEntity {
   phone: string;
   jobTitle: string;
   company: string;
+  businessModel?: string;
   department: string;
   address: {
     street: string;
@@ -59,6 +61,7 @@ export interface Deal extends BaseEntity {
   companyName: string;
   companyLogo: string;
   amount: string;
+  businessModel?: string;
   stage: 'Prospect' | 'Qualifying' | 'Proposal' | 'Negotiation' | 'Closed Won' | 'Closed Lost';
   owner: {
     name: string;

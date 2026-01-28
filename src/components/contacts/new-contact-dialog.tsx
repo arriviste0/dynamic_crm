@@ -32,6 +32,7 @@ import * as z from 'zod';
 import { createContact, updateContact } from '@/app/actions/contacts';
 import { useToast } from '@/hooks/use-toast';
 import React, { useEffect, useState } from 'react';
+import { formatBusinessModelLabel, getBusinessModels, getDefaultBusinessModel } from '@/lib/business-models';
 // Helper to load and save custom fields in localStorage (for demo; replace with API/backend later)
 function loadCustomFields() {
   if (typeof window !== 'undefined') {
@@ -56,6 +57,7 @@ const contactSchema = z.object({
   phone: z.string().min(10, 'Phone number must be at least 10 characters.'),
   jobTitle: z.string().min(2, 'Job title must be at least 2 characters.'),
   company: z.string().min(2, 'Company must be at least 2 characters.'),
+  businessModel: z.string().min(1, 'Business model is required.'),
   department: z.string().optional(),
   address: z.object({
     street: z.string().optional(),
@@ -80,6 +82,7 @@ export function NewContactDialog({ open, onOpenChange, onContactCreated, onConta
   const [customFields, setCustomFields] = useState<{ name: string; type: string; module: string }[]>([]);
   const [showAddField, setShowAddField] = useState(false);
   const [newField, setNewField] = useState<{ name: string; type: string }>({ name: '', type: 'text' });
+  const [businessModels, setBusinessModels] = useState<string[]>([]);
   const { toast } = useToast();
   // Extend form schema to include custom fields dynamically
   const customFieldDefaults = customFields.filter(f => f.module === 'contacts').reduce((acc, f) => ({ ...acc, [f.name]: '' }), {} as Record<string, string>);
@@ -92,6 +95,7 @@ export function NewContactDialog({ open, onOpenChange, onContactCreated, onConta
       phone: '',
       jobTitle: '',
       company: '',
+      businessModel: getDefaultBusinessModel(),
       department: '',
       address: {
         street: '',
@@ -108,6 +112,7 @@ export function NewContactDialog({ open, onOpenChange, onContactCreated, onConta
 
   useEffect(() => {
     setCustomFields(loadCustomFields());
+    setBusinessModels(getBusinessModels());
   }, [open]);
 
   useEffect(() => {
@@ -119,6 +124,7 @@ export function NewContactDialog({ open, onOpenChange, onContactCreated, onConta
         phone: contact.phone,
         jobTitle: contact.jobTitle,
         company: contact.company,
+        businessModel: contact.businessModel || getDefaultBusinessModel(),
         department: contact.department || '',
         address: {
           street: contact.address?.street || '',
@@ -139,6 +145,7 @@ export function NewContactDialog({ open, onOpenChange, onContactCreated, onConta
         phone: '',
         jobTitle: '',
         company: '',
+        businessModel: getDefaultBusinessModel(),
         department: '',
         address: {
           street: '',
@@ -154,6 +161,14 @@ export function NewContactDialog({ open, onOpenChange, onContactCreated, onConta
     }
     // eslint-disable-next-line
   }, [contact, form, open, customFields]);
+
+  useEffect(() => {
+    if (!businessModels.length) return;
+    const currentValue = form.getValues('businessModel');
+    if (!currentValue || !businessModels.includes(currentValue)) {
+      form.setValue('businessModel', businessModels[0], { shouldValidate: true });
+    }
+  }, [businessModels, form]);
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -411,6 +426,30 @@ export function NewContactDialog({ open, onOpenChange, onContactCreated, onConta
                         <SelectItem value="Customer">Customer</SelectItem>
                         <SelectItem value="Active">Active</SelectItem>
                         <SelectItem value="Inactive">Inactive</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="businessModel"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Business Model *</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select business model" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {businessModels.map(model => (
+                          <SelectItem key={model} value={model}>
+                            {formatBusinessModelLabel(model)}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />

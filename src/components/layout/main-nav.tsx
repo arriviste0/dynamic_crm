@@ -222,6 +222,14 @@ export function MainNav() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
+            <SidebarMenuButton asChild isActive={pathname.startsWith('/customer-profile')}>
+              <Link href="/customer-profile">
+                <Users />
+                <span>Customer Profile</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={pathname.startsWith('/settings')}>
               <Link href="/settings">
                 <Cog />

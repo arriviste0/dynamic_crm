@@ -9,6 +9,7 @@ const dealSchema = z.object({
   dealName: z.string().min(2, 'Deal name must be at least 2 characters.'),
   companyName: z.string().min(2, 'Company name must be at least 2 characters.'),
   amount: z.string().regex(/^\$?\d+(,\d{3})*(\.\d{2})?$/, 'Please enter a valid amount.'),
+  businessModel: z.string().min(1, 'Business model is required.'),
   stage: z.enum(['Prospect', 'Qualifying', 'Proposal', 'Negotiation', 'Closed Won', 'Closed Lost']),
   customFields: z.record(z.string(), z.any()).optional(),
 });
@@ -26,7 +27,7 @@ export async function createDeal(formData: FormData) {
         }
 
         // Extract custom fields from form data
-        const standardFields = ['dealName', 'companyName', 'amount', 'stage'];
+        const standardFields = ['dealName', 'companyName', 'amount', 'businessModel', 'stage'];
         
         const customFieldValues: Record<string, any> = {};
         
@@ -83,7 +84,7 @@ export async function updateDeal(id: string, formData: FormData) {
         }
 
         // Extract custom fields from form data
-        const standardFields = ['dealName', 'companyName', 'amount', 'stage'];
+        const standardFields = ['dealName', 'companyName', 'amount', 'businessModel', 'stage'];
         
         const updateCustomFieldValues: Record<string, any> = {};
         

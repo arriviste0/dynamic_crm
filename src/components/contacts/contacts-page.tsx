@@ -46,6 +46,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Contact } from '@/lib/types';
+import { formatBusinessModelLabel } from '@/lib/business-models';
 
 const statusVariant: { [key: string]: 'default' | 'secondary' | 'destructive' | 'outline' } = {
   'Active': 'default',
@@ -137,7 +138,8 @@ export function ContactsPage() {
     `${contact.firstName} ${contact.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
     contact.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     contact.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    contact.jobTitle.toLowerCase().includes(searchTerm.toLowerCase())
+    contact.jobTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (contact.businessModel || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -196,6 +198,7 @@ export function ContactsPage() {
                   <TableHead className="hidden sm:table-cell">Company</TableHead>
                   <TableHead className="hidden md:table-cell">Job Title</TableHead>
                   <TableHead className="hidden lg:table-cell">Status</TableHead>
+                  <TableHead className="hidden lg:table-cell">Business Model</TableHead>
                   <TableHead className="text-right">Owner</TableHead>
                   <TableHead><span className="sr-only">Actions</span></TableHead>
                 </TableRow>
@@ -203,13 +206,13 @@ export function ContactsPage() {
               <TableBody>
                 {isPending ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center">
+                    <TableCell colSpan={7} className="h-24 text-center">
                       Loading...
                     </TableCell>
                   </TableRow>
                 ) : filteredContacts.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center">
+                    <TableCell colSpan={7} className="h-24 text-center">
                       No contacts found.
                     </TableCell>
                   </TableRow>
@@ -232,6 +235,13 @@ export function ContactsPage() {
                       <TableCell className="hidden md:table-cell">{contact.jobTitle}</TableCell>
                       <TableCell className="hidden lg:table-cell">
                         <Badge variant={statusVariant[contact.status] || 'outline'}>{contact.status}</Badge>
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                        {contact.businessModel ? (
+                          <Badge variant="secondary">{formatBusinessModelLabel(contact.businessModel)}</Badge>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">

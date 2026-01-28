@@ -32,6 +32,7 @@ import * as z from 'zod';
 import { createAccount, updateAccount } from '@/app/actions/accounts';
 import { useToast } from '@/hooks/use-toast';
 import React, { useEffect, useState } from 'react';
+import { formatBusinessModelLabel, getBusinessModels, getDefaultBusinessModel } from '@/lib/business-models';
 // Helper to load and save custom fields in localStorage (for demo; replace with API/backend later)
 function loadCustomFields() {
   if (typeof window !== 'undefined') {
@@ -52,6 +53,7 @@ import { Account } from '@/lib/types';
 const accountSchema = z.object({
   companyName: z.string().min(2, 'Company name must be at least 2 characters.'),
   industry: z.string().min(2, 'Industry must be at least 2 characters.'),
+  businessModel: z.string().min(1, 'Business model is required.'),
   website: z.string().url('Please enter a valid website URL.').optional().or(z.literal('')),
   phone: z.string().min(10, 'Phone number must be at least 10 characters.'),
   email: z.string().email('Please enter a valid email address.'),
@@ -78,6 +80,7 @@ export function NewAccountDialog({ open, onOpenChange, onAccountCreated, onAccou
   const [customFields, setCustomFields] = useState<{ name: string; type: string; module: string }[]>([]);
   const [showAddField, setShowAddField] = useState(false);
   const [newField, setNewField] = useState<{ name: string; type: string }>({ name: '', type: 'text' });
+  const [businessModels, setBusinessModels] = useState<string[]>([]);
   const { toast } = useToast();
   // Extend form schema to include custom fields dynamically
   const customFieldDefaults = React.useMemo(() => 
@@ -89,6 +92,7 @@ export function NewAccountDialog({ open, onOpenChange, onAccountCreated, onAccou
     defaultValues: {
       companyName: '',
       industry: '',
+      businessModel: getDefaultBusinessModel(),
       website: '',
       phone: '',
       email: '',
@@ -107,6 +111,7 @@ export function NewAccountDialog({ open, onOpenChange, onAccountCreated, onAccou
 
   useEffect(() => {
     setCustomFields(loadCustomFields());
+    setBusinessModels(getBusinessModels());
   }, [open]);
 
   useEffect(() => {
@@ -114,6 +119,7 @@ export function NewAccountDialog({ open, onOpenChange, onAccountCreated, onAccou
       form.reset({
         companyName: account.companyName,
         industry: account.industry,
+        businessModel: account.businessModel || getDefaultBusinessModel(),
         website: account.website,
         phone: account.phone,
         email: account.email,
@@ -126,6 +132,7 @@ export function NewAccountDialog({ open, onOpenChange, onAccountCreated, onAccou
       form.reset({
         companyName: '',
         industry: '',
+        businessModel: getDefaultBusinessModel(),
         website: '',
         phone: '',
         email: '',
@@ -143,6 +150,14 @@ export function NewAccountDialog({ open, onOpenChange, onAccountCreated, onAccou
     }
     // eslint-disable-next-line
   }, [account, form, open, customFields]);
+
+  useEffect(() => {
+    if (!businessModels.length) return;
+    const currentValue = form.getValues('businessModel');
+    if (!currentValue || !businessModels.includes(currentValue)) {
+      form.setValue('businessModel', businessModels[0], { shouldValidate: true });
+    }
+  }, [businessModels, form]);
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -371,6 +386,30 @@ export function NewAccountDialog({ open, onOpenChange, onAccountCreated, onAccou
                         <SelectItem value="Customer">Customer</SelectItem>
                         <SelectItem value="Active">Active</SelectItem>
                         <SelectItem value="Inactive">Inactive</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="businessModel"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Business Model *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select business model" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {businessModels.map(model => (
+                          <SelectItem key={model} value={model}>
+                            {formatBusinessModelLabel(model)}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />

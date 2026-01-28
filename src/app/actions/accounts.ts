@@ -9,6 +9,7 @@ import { Account } from '@/lib/types';
 const accountSchema = z.object({
   companyName: z.string().min(2, 'Company name must be at least 2 characters.'),
   industry: z.string().min(2, 'Industry must be at least 2 characters.'),
+  businessModel: z.string().min(1, 'Business model is required.'),
   website: z.string().url('Please enter a valid website URL.').optional().or(z.literal('')),
   phone: z.string().min(10, 'Phone number must be at least 10 characters.'),
   email: z.string().email('Please enter a valid email address.'),
@@ -52,7 +53,7 @@ export async function createAccount(formData: FormData) {
     // Custom fields are any fields that are not part of the standard schema
     const standardFields = [
       'companyName', 'industry', 'website', 'phone', 'email', 
-      'address.street', 'address.city', 'address.state', 'address.zipCode', 'address.country',
+      'businessModel', 'address.street', 'address.city', 'address.state', 'address.zipCode', 'address.country',
       'description', 'status'
     ];
     
@@ -137,7 +138,7 @@ export async function updateAccount(id: string, formData: FormData) {
     // Custom fields are any fields that are not part of the standard schema
     const standardFields = [
       'companyName', 'industry', 'website', 'phone', 'email', 
-      'address.street', 'address.city', 'address.state', 'address.zipCode', 'address.country',
+      'businessModel', 'address.street', 'address.city', 'address.state', 'address.zipCode', 'address.country',
       'description', 'status'
     ];
     

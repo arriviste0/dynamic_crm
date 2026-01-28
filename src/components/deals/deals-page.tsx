@@ -46,6 +46,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { formatBusinessModelLabel } from '@/lib/business-models';
 
 type Deal = {
   _id: string;
@@ -53,6 +54,7 @@ type Deal = {
   companyName: string;
   companyLogo: string;
   amount: string;
+  businessModel?: 'B2B' | 'B2C' | 'BCB';
   stage: string;
   owner: { name: string; avatar: string };
 };
@@ -142,6 +144,7 @@ export function DealsPage() {
                   <TableHead>Deal Name</TableHead>
                   <TableHead className="hidden sm:table-cell">Amount</TableHead>
                   <TableHead className="hidden md:table-cell">Stage</TableHead>
+                  <TableHead className="hidden lg:table-cell">Business Model</TableHead>
                   <TableHead className="text-right">Owner</TableHead>
                   <TableHead><span className="sr-only">Actions</span></TableHead>
                 </TableRow>
@@ -149,7 +152,7 @@ export function DealsPage() {
               <TableBody>
                 {isPending ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center">
+                    <TableCell colSpan={6} className="h-24 text-center">
                       Loading...
                     </TableCell>
                   </TableRow>
@@ -174,6 +177,13 @@ export function DealsPage() {
                     <TableCell className="hidden sm:table-cell font-mono">{deal.amount}</TableCell>
                     <TableCell className="hidden md:table-cell">
                       <Badge variant={stageVariant[deal.stage] || 'outline'}>{deal.stage}</Badge>
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell">
+                      {deal.businessModel ? (
+                        <Badge variant="secondary">{formatBusinessModelLabel(deal.businessModel)}</Badge>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
