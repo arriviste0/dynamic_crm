@@ -1,6 +1,6 @@
 'use server';
 
-import clientPromise from '@/lib/mongodb';
+import clientPromise, { getDb } from '@/lib/mongodb';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { ObjectId } from 'mongodb';
@@ -26,8 +26,7 @@ const accountSchema = z.object({
 
 export async function createAccount(formData: FormData) {
   try {
-    const client = await clientPromise;
-    const db = client.db();
+    const db = await getDb();
 
     const rawFormData = Object.fromEntries(formData.entries());
     
@@ -49,21 +48,28 @@ export async function createAccount(formData: FormData) {
       return { success: false, message: 'Invalid data.', errors: validation.error.flatten().fieldErrors };
     }
 
-    // Get custom fields
-    const customFields = await db.collection('customFields').find({ module: 'accounts' }).toArray();
+    // Extract custom fields from form data
+    // Custom fields are any fields that are not part of the standard schema
+    const standardFields = [
+      'companyName', 'industry', 'website', 'phone', 'email', 
+      'address.street', 'address.city', 'address.state', 'address.zipCode', 'address.country',
+      'description', 'status'
+    ];
+    
     const customFieldValues: Record<string, any> = {};
     
-    customFields.forEach(field => {
-      if (rawFormData[field.name]) {
-        customFieldValues[field.name] = rawFormData[field.name];
+    Object.keys(rawFormData).forEach(key => {
+      // Skip standard fields and nested address fields
+      if (!standardFields.includes(key) && !key.startsWith('address.')) {
+        customFieldValues[key] = rawFormData[key];
       }
     });
 
     const accountData = {
       ...validation.data,
+      ...customFieldValues, // Spread custom fields as top-level fields
       owner: { name: 'Admin User', avatar: 'https://picsum.photos/40/40?random=1' },
       logo: `https://picsum.photos/80/80?random=${Math.floor(Math.random() * 100)}`,
-      customFields: customFieldValues,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -80,8 +86,7 @@ export async function createAccount(formData: FormData) {
 
 export async function getAccounts() {
   try {
-    const client = await clientPromise;
-    const db = client.db();
+    const db = await getDb();
     const accounts = await db.collection('accounts').find({}).sort({ createdAt: -1 }).toArray();
     return JSON.parse(JSON.stringify(accounts));
   } catch (e) {
@@ -92,8 +97,7 @@ export async function getAccounts() {
 
 export async function getAccount(id: string) {
   try {
-    const client = await clientPromise;
-    const db = client.db();
+    const db = await getDb();
     const account = await db.collection('accounts').findOne({ _id: new ObjectId(id) });
     return JSON.parse(JSON.stringify(account));
   } catch (e) {
@@ -107,8 +111,7 @@ export async function updateAccount(id: string, formData: FormData) {
     if (!id) {
       return { success: false, message: 'Account ID is required.' };
     }
-    const client = await clientPromise;
-    const db = client.db();
+    const db = await getDb();
 
     const rawFormData = Object.fromEntries(formData.entries());
     
@@ -130,13 +133,20 @@ export async function updateAccount(id: string, formData: FormData) {
       return { success: false, message: 'Invalid data.', errors: validation.error.flatten().fieldErrors };
     }
 
-    // Get custom fields
-    const customFields = await db.collection('customFields').find({ module: 'accounts' }).toArray();
+    // Extract custom fields from form data
+    // Custom fields are any fields that are not part of the standard schema
+    const standardFields = [
+      'companyName', 'industry', 'website', 'phone', 'email', 
+      'address.street', 'address.city', 'address.state', 'address.zipCode', 'address.country',
+      'description', 'status'
+    ];
+    
     const customFieldValues: Record<string, any> = {};
     
-    customFields.forEach(field => {
-      if (rawFormData[field.name]) {
-        customFieldValues[field.name] = rawFormData[field.name];
+    Object.keys(rawFormData).forEach(key => {
+      // Skip standard fields and nested address fields
+      if (!standardFields.includes(key) && !key.startsWith('address.')) {
+        customFieldValues[key] = rawFormData[key];
       }
     });
 
@@ -145,7 +155,7 @@ export async function updateAccount(id: string, formData: FormData) {
       { 
         $set: { 
           ...validation.data, 
-          customFields: customFieldValues,
+          ...customFieldValues, // Spread custom fields as top-level fields
           updatedAt: new Date() 
         } 
       }

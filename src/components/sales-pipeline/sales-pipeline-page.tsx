@@ -11,148 +11,111 @@ import {
 } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import Image from 'next/image';
-import { MoreHorizontal, Plus } from 'lucide-react';
+import { MoreHorizontal } from 'lucide-react';
 import { Badge } from '../ui/badge';
-import React, { useEffect, useState } from 'react';
-import { getDeals } from '@/app/actions/deals';
-import { useToast } from '@/hooks/use-toast';
-import { NewDealDialog } from './new-deal-dialog';
+import React from 'react';
 
 type Deal = {
-  _id: string;
+  id: string;
   dealName: string;
   companyName: string;
+  companyLogo: string;
   amount: string;
   stage: 'Prospect' | 'Qualifying' | 'Proposal' | 'Negotiation' | 'Closed Won';
-  createdAt: string;
-  updatedAt: string;
-  fieldOrder?: string[];
+  owner: { name: string; avatar: string };
 };
 
-export default function SalesPipelinePage() {
-  const [deals, setDeals] = useState<Deal[]>([]);
-  const [isNewDealOpen, setIsNewDealOpen] = useState(false);
-  const { toast } = useToast();
+const initialDeals: Deal[] = [
+    { id: '1', dealName: 'Project Phoenix', companyName: 'Innovate Inc.', companyLogo: 'https://picsum.photos/40/40?random=1', amount: '$250,000', stage: 'Negotiation', owner: { name: 'Olivia Martin', avatar: 'https://picsum.photos/40/40?random=6' } },
+    { id: '2', dealName: 'Quantum Leap', companyName: 'Synergy Corp', companyLogo: 'https://picsum.photos/40/40?random=2', amount: '$150,000', stage: 'Proposal', owner: { name: 'Liam Johnson', avatar: 'https://picsum.photos/40/40?random=7' } },
+    { id: '3', dealName: 'Project Titan', companyName: 'Apex Solutions', companyLogo: 'https://picsum.photos/40/40?random=3', amount: '$350,000', stage: 'Qualifying', owner: { name: 'Emma Wilson', avatar: 'https://picsum.photos/40/40?random=8' } },
+    { id: '4', dealName: 'Fusion Initiative', companyName: 'Momentum Dynamics', companyLogo: 'https://picsum.photos/40/40?random=4', amount: '$450,000', stage: 'Closed Won', owner: { name: 'Noah Brown', avatar: 'https://picsum.photos/40/40?random=9' } },
+    { id: '5', dealName: 'Project Nebula', companyName: 'Stellar Tech', companyLogo: 'https://picsum.photos/40/40?random=5', amount: '$80,000', stage: 'Prospect', owner: { name: 'Ava Garcia', avatar: 'https://picsum.photos/40/40?random=10' } },
+    { id: '6', dealName: 'Odyssey Venture', companyName: 'Horizon Enterprises', companyLogo: 'https://picsum.photos/40/40?random=11', amount: '$120,000', stage: 'Proposal', owner: { name: 'Sophia Lee', avatar: 'https://picsum.photos/40/40?random=12' } },
+    { id: '7', dealName: 'Gateway Project', companyName: 'Pinnacle Corp', companyLogo: 'https://picsum.photos/40/40?random=13', amount: '$200,000', stage: 'Negotiation', owner: { name: 'James White', avatar: 'https://picsum.photos/40/40?random=14' } },
+];
 
-  const loadDeals = async () => {
-    try {
-      const result = await getDeals();
-      if (result.success) {
-        setDeals(result.data);
-      } else {
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: 'Failed to load deals'
-        });
-      }
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to load deals'
-      });
-    }
-  };
+const stages: Deal['stage'][] = ['Prospect', 'Qualifying', 'Proposal', 'Negotiation', 'Closed Won'];
 
-  useEffect(() => {
-    loadDeals();
-  }, []);
+const DealCard = ({ deal }: { deal: Deal }) => (
+  <Card className="mb-4">
+    <CardHeader className="p-4">
+      <div className="flex items-start justify-between">
+        <CardTitle className="text-base">{deal.dealName}</CardTitle>
+        <Button variant="ghost" size="icon" className="h-6 w-6">
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </div>
+      <CardDescription>{deal.companyName}</CardDescription>
+    </CardHeader>
+    <CardContent className="p-4 pt-0">
+      <div className="flex items-center justify-between">
+        <span className="text-lg font-bold">{deal.amount}</span>
+        <Avatar className="h-8 w-8">
+          <AvatarImage src={deal.owner.avatar} alt={deal.owner.name} data-ai-hint="user avatar" />
+          <AvatarFallback>{deal.owner.name.charAt(0)}</AvatarFallback>
+        </Avatar>
+      </div>
+    </CardContent>
+  </Card>
+);
 
-  const renderDeals = (stage: Deal['stage']) => {
-    return deals
-      .filter(deal => deal.stage === stage)
-      .map(deal => (
-        <Card key={deal._id} className="mb-4">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <div className="flex items-center space-x-2">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={`https://ui-avatars.com/api/?name=${encodeURIComponent(deal.companyName)}`} />
-                <AvatarFallback>{deal.companyName[0]}</AvatarFallback>
-              </Avatar>
-              <div>
-                <CardTitle className="text-sm font-medium">
-                  {deal.dealName}
-                </CardTitle>
-                <CardDescription className="text-xs">
-                  {deal.companyName}
-                </CardDescription>
-              </div>
-            </div>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <Badge variant="secondary">{deal.stage}</Badge>
-              <span className="text-sm font-medium">{deal.amount}</span>
-            </div>
-          </CardContent>
-        </Card>
-      ));
-  };
+const PipelineColumn = ({ title, deals, onDragOver, onDrop }: { title: Deal['stage'], deals: Deal[], onDragOver: React.DragEventHandler<HTMLDivElement>, onDrop: React.DragEventHandler<HTMLDivElement> }) => (
+  <div className="flex-1" onDragOver={onDragOver} onDrop={onDrop} data-stage={title}>
+    <h2 className="text-lg font-semibold mb-4 capitalize px-1">{title} ({deals.length})</h2>
+    <div className="bg-muted p-2 rounded-lg min-h-[500px]">
+      {deals.map(deal => (
+        <div key={deal.id} draggable onDragStart={(e) => e.dataTransfer.setData('dealId', deal.id)}>
+          <DealCard deal={deal} />
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+export function SalesPipelinePage() {
+    const [deals, setDeals] = React.useState(initialDeals);
+
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+    };
+
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        const dealId = e.dataTransfer.getData('dealId');
+        const stage = e.currentTarget.dataset.stage as Deal['stage'];
+
+        if (dealId && stage) {
+            setDeals(currentDeals => currentDeals.map(deal =>
+                deal.id === dealId ? { ...deal, stage } : deal
+            ));
+        }
+    };
+
 
   return (
-    <div className="flex min-h-screen flex-col space-y-6">
-      <header className="sticky top-0 z-40 border-b bg-background">
-        <div className="container flex h-16 items-center justify-between py-4">
-          <div className="flex items-center gap-2">
-            <SidebarTrigger />
-            <h1 className="text-lg font-bold">Sales Pipeline</h1>
-          </div>
-          <div className="flex items-center gap-4">
-            <Button onClick={() => setIsNewDealOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              New Deal
-            </Button>
-            <UserNav />
-          </div>
+    <div className="flex h-full min-h-screen flex-col">
+      <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b-2 bg-background/80 px-4 backdrop-blur-sm md:px-6">
+        <SidebarTrigger className="md:hidden" />
+        <h1 className="hidden text-lg font-semibold md:block">Sales Pipeline</h1>
+        <div className="relative ml-auto flex-1 md:grow-0">
         </div>
-      </header>
-
-      <div className="container grid flex-1 gap-6">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-          {/* Prospect Column */}
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold">Prospect</h2>
-            {renderDeals('Prospect')}
-          </div>
-
-          {/* Qualifying Column */}
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold">Qualifying</h2>
-            {renderDeals('Qualifying')}
-          </div>
-
-          {/* Proposal Column */}
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold">Proposal</h2>
-            {renderDeals('Proposal')}
-          </div>
-
-          {/* Negotiation Column */}
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold">Negotiation</h2>
-            {renderDeals('Negotiation')}
-          </div>
-
-          {/* Closed Won Column */}
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold">Closed Won</h2>
-            {renderDeals('Closed Won')}
-          </div>
+        <div className="hidden md:block">
+         <UserNav />
         </div>
-      </div>
-
-      <NewDealDialog
-        open={isNewDealOpen}
-        onOpenChange={setIsNewDealOpen}
-        onDealCreated={loadDeals}
-      />
+         <Button>+ New Deal</Button>
+      </header>      
+      <main className="flex-1 space-x-4 p-4 md:p-8 flex overflow-x-auto">
+        {stages.map(stage => (
+            <PipelineColumn 
+                key={stage}
+                title={stage}
+                deals={deals.filter(d => d.stage === stage)}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+            />
+        ))}
+      </main>
     </div>
   );
 }
-
-

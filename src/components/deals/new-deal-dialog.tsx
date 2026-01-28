@@ -31,31 +31,36 @@ import * as z from 'zod';
 import { createDeal, updateDeal } from '@/app/actions/deals';
 import { useToast } from '@/hooks/use-toast';
 import React, { useEffect, useState } from 'react';
-import { getCustomFields } from '@/app/actions/custom-fields';
-import { Deal, CustomField } from '@/lib/types';
+// Helper to load and save custom fields in localStorage (for demo; replace with API/backend later)
+function loadCustomFields() {
+  if (typeof window !== 'undefined') {
+    try {
+      const data = localStorage.getItem('customFields');
+      if (data) return JSON.parse(data);
+    } catch {}
+  }
+  return [];
+}
+function saveCustomFields(fields: any[]) {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('customFields', JSON.stringify(fields));
+  }
+}
 
-type DealStage = 'Prospect' | 'Qualifying' | 'Proposal' | 'Negotiation' | 'Closed Won' | 'Closed Lost';
+const dealSchema = z.object({
+  dealName: z.string().min(2, 'Deal name must be at least 2 characters.'),
+  companyName: z.string().min(2, 'Company name must be at least 2 characters.'),
+  amount: z.string().regex(/^\$?\d+(,\d{3})*(\.\d{2})?$/, 'Please enter a valid amount.'),
+  stage: z.enum(['Prospect', 'Qualifying', 'Proposal', 'Negotiation', 'Closed Won', 'Closed Lost']),
+});
 
-type DealFormCustomFields = {
-  [key: string]: string;
-};
-
-interface DealFormValues extends DealFormCustomFields {
+type Deal = {
+  _id: string;
   dealName: string;
   companyName: string;
   amount: string;
-  stage: DealStage;
-}
-
-interface CustomFieldValue {
-  value: string;
-  type: string;
-  label: string;
-}
-
-interface CustomFieldMap {
-  [key: string]: CustomFieldValue;
-}
+  stage: string;
+};
 
 type NewDealDialogProps = {
   open: boolean;
@@ -65,466 +70,85 @@ type NewDealDialogProps = {
   deal: Deal | null;
 };
 
-export function NewDealDialog({
-  open,
-  onOpenChange,
-  onDealCreated,
-  onDealUpdated,
-  deal
-}: NewDealDialogProps) {
-  const [fields, setFields] = useState<CustomField[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+export function NewDealDialog({ open, onOpenChange, onDealCreated, onDealUpdated, deal }: NewDealDialogProps) {
+  const [customFields, setCustomFields] = useState<{ name: string; type: string; module: string }[]>([]);
+  const [showAddField, setShowAddField] = useState(false);
+  const [newField, setNewField] = useState<{ name: string; type: string }>({ name: '', type: 'text' });
   const { toast } = useToast();
-
-  // Load custom fields
-  useEffect(() => {
-    let mounted = true;
-    
-    async function loadFields() {
-      try {
-        const response = await getCustomFields();
-        if (response.success && Array.isArray(response.data) && mounted) {
-          const dealsFields = response.data
-            .filter(field => field.module === 'deals')
-            .map(field => ({
-              name: field.name,
-              type: field.type,
-              module: field.module,
-              _id: field._id.toString(),
-              createdAt: new Date(field.createdAt),
-              updatedAt: new Date(field.updatedAt)
-            }));
-          setFields(dealsFields);
-        }
-      } catch (error) {
-        if (mounted) {
-          console.error('Failed to load custom fields:', error);
-          toast({
-            variant: 'destructive',
-            title: 'Error',
-            description: 'Failed to load custom fields'
-          });
-        }
-      }
-    }
-
-    if (open) {
-      loadFields();
-    }
-    
-    return () => { mounted = false; };
-  }, [open, toast]);
-
-  // Create validation schema
-  const formSchema = z.object({
-    dealName: z.string().min(2, 'Deal name must be at least 2 characters'),
-    companyName: z.string().min(2, 'Company name must be at least 2 characters'),
-    amount: z.string().regex(/^\$?\d+(,\d{3})*(\.\d{2})?$/, 'Please enter a valid amount'),
-    stage: z.enum(['Prospect', 'Qualifying', 'Proposal', 'Negotiation', 'Closed Won', 'Closed Lost']),
-    ...(fields.reduce<Record<string, z.ZodString>>((acc, field) => ({
-      ...acc,
-      [field.name]: field.type === 'number'
-        ? z.string().regex(/^\d+$/, 'Please enter a valid number')
-        : field.type === 'date'
-        ? z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Please enter a valid date')
-        : z.string()
-    }), {}))
-  });
-  
-  // Form setup
-  const form = useForm<DealFormValues>({
-    resolver: zodResolver(formSchema),
+  // Extend form schema to include custom fields dynamically
+  const customFieldDefaults = customFields.filter(f => f.module === 'deals').reduce((acc, f) => ({ ...acc, [f.name]: '' }), {} as Record<string, string>);
+  const form = useForm<any>({
+    resolver: zodResolver(dealSchema),
     defaultValues: {
-      dealName: deal?.dealName || '',
-      companyName: deal?.companyName || '',
-      amount: deal?.amount || '',
-      stage: (deal?.stage as DealStage) || 'Prospect',
-      ...Object.fromEntries(
-        fields.map(field => [
-          field.name,
-          typeof deal?.customFields?.[field.name] === 'object' 
-            ? String((deal.customFields[field.name] as CustomFieldValue)?.value || '')
-            : String(deal?.customFields?.[field.name] || '')
-        ])
-      )
-    }
+      dealName: '',
+      companyName: '',
+      amount: '',
+      stage: 'Prospect',
+      ...customFieldDefaults,
+    },
   });
 
-  // Handle form submission
-  const onSubmit = async (values: DealFormValues) => {
-    try {
-      setIsSubmitting(true);
-      form.clearErrors();
+  useEffect(() => {
+    setCustomFields(loadCustomFields());
+  }, [open]);
 
-      // Prepare form data
-      const formData = new FormData();
-      formData.append('dealName', values.dealName);
-      formData.append('companyName', values.companyName);
-      formData.append('amount', values.amount);
-      formData.append('stage', values.stage);
-
-      // Process custom fields
-      const customData: CustomFieldMap = {};
-      
-      fields.forEach(field => {
-        const value = values[field.name];
-        if (value) {
-          customData[field.name] = {
-            value: value.toString(),
-            type: field.type,
-            label: field.name
-          };
-        }
+  useEffect(() => {
+    if (deal) {
+      form.reset({ ...deal, ...customFieldDefaults });
+    } else {
+      form.reset({
+        dealName: '',
+        companyName: '',
+        amount: '',
+        stage: 'Prospect',
+        ...customFieldDefaults,
       });
+    }
+    // eslint-disable-next-line
+  }, [deal, form, open, customFields]);
 
-      // Add custom fields to form data if any exist
-      if (Object.keys(customData).length > 0) {
-        formData.append('customFields', JSON.stringify(customData));
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  const onSubmit = async (values: z.infer<typeof dealSchema>) => {
+    setIsSubmitting(true);
+    const formData = new FormData();
+    Object.entries(values).forEach(([key, value]) => {
+      formData.append(key, value);
+    });
+
+    // Add custom field values directly from form state
+    const dealCustomFields = customFields.filter(f => f.module === 'deals');
+    dealCustomFields.forEach(field => {
+      const fieldValue = form.getValues(field.name);
+      if (fieldValue && fieldValue.trim() !== '') {
+        formData.append(field.name, fieldValue);
       }
+    });
 
-      // Submit to server
-      const response = await (deal 
-        ? updateDeal(deal._id, formData)
-        : createDeal(formData));
+    const result = deal 
+        ? await updateDeal(deal._id, formData) 
+        : await createDeal(formData);
 
-      // Handle errors
-      if (!response.success) {
-        if (response.errors) {
-          // Set field-specific errors
-          for (const [field, errors] of Object.entries(response.errors)) {
-            if (errors?.[0] && form.getValues()[field as keyof DealFormValues] !== undefined) {
-              form.setError(field as keyof DealFormValues, {
-                type: 'server',
-                message: errors[0]
-              });
-            }
-          }
-          return;
-        }
-        throw new Error(response.message);
-      }
-
-      // Success case
+    if (result.success) {
       toast({
-        title: 'Success',
-        description: response.message
+        title: 'Success!',
+        description: result.message,
       });
-
-      // Update parent
-      const updatedDeal = {
-        ...values,
-        _id: deal?._id,
-        customFields: customData
-      };
-
-      if (deal) {
-        onDealUpdated(updatedDeal);
-      } else {
-        onDealCreated(updatedDeal);
-      }
-
-      // Reset and close
       form.reset();
       onOpenChange(false);
-
-    } catch (error) {
-      console.error('Error submitting deal:', error);
+      if (deal) {
+        onDealUpdated(result);
+      } else {
+        onDealCreated(result);
+      }
+    } else {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to submit deal'
+        description: result.message,
       });
-    } finally {
-      setIsSubmitting(false);
     }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>{deal ? 'Edit Deal' : 'Create Deal'}</DialogTitle>
-          <DialogDescription>
-            {deal ? 'Update the deal details below.' : 'Add a new deal with the form below.'}
-          </DialogDescription>
-        </DialogHeader>
-
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="dealName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Deal Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter deal name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="companyName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Company Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter company name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Amount</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter amount" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="stage"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Stage</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a stage" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Prospect">Prospect</SelectItem>
-                      <SelectItem value="Qualifying">Qualifying</SelectItem>
-                      <SelectItem value="Proposal">Proposal</SelectItem>
-                      <SelectItem value="Negotiation">Negotiation</SelectItem>
-                      <SelectItem value="Closed Won">Closed Won</SelectItem>
-                      <SelectItem value="Closed Lost">Closed Lost</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {fields.map((field) => (
-              <FormField
-                key={field._id}
-                control={form.control}
-                name={field.name as keyof DealFormValues}
-                render={({ field: formField }) => (
-                  <FormItem>
-                    <FormLabel>{field.name}</FormLabel>
-                    <FormControl>
-                      <Input
-                        type={field.type === 'number' ? 'number' : field.type === 'date' ? 'date' : 'text'}
-                        placeholder={`Enter ${field.name.toLowerCase()}`}
-                        {...formField}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            ))}
-
-            <DialogFooter>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Saving...' : deal ? 'Save Changes' : 'Create Deal'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-export function NewDealDialog({
-  open,
-  onOpenChange,
-  onDealCreated,
-  onDealUpdated,
-  deal
-}: NewDealDialogProps) {
-  const [fields, setFields] = useState<CustomField[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
-
-  // Load custom fields
-  useEffect(() => {
-    let mounted = true;
-    
-    async function loadFields() {
-      try {
-        const response = await getCustomFields();
-        if (response.success && Array.isArray(response.data) && mounted) {
-          const dealsFields = response.data
-            .filter(field => field.module === 'deals')
-            .map(field => ({
-              name: field.name,
-              type: field.type,
-              module: field.module,
-              _id: field._id.toString(),
-              createdAt: new Date(field.createdAt),
-              updatedAt: new Date(field.updatedAt)
-            }));
-          setFields(dealsFields);
-        }
-      } catch (error) {
-        if (mounted) {
-          console.error('Failed to load custom fields:', error);
-          toast({
-            variant: 'destructive',
-            title: 'Error',
-            description: 'Failed to load custom fields'
-          });
-        }
-      }
-    }
-
-    if (open) {
-      loadFields();
-    }
-    
-    return () => { mounted = false; };
-  }, [open, toast]);
-
-  // Create validation schema
-  const formSchema = z.object({
-    dealName: z.string().min(2, 'Deal name must be at least 2 characters'),
-    companyName: z.string().min(2, 'Company name must be at least 2 characters'),
-    amount: z.string().regex(/^\$?\d+(,\d{3})*(\.\d{2})?$/, 'Please enter a valid amount'),
-    stage: z.enum(['Prospect', 'Qualifying', 'Proposal', 'Negotiation', 'Closed Won', 'Closed Lost']),
-    ...(fields.reduce<Record<string, z.ZodString>>((acc, field) => ({
-      ...acc,
-      [field.name]: field.type === 'number'
-        ? z.string().regex(/^\d+$/, 'Please enter a valid number')
-        : field.type === 'date'
-        ? z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Please enter a valid date')
-        : z.string()
-    }), {}))
-  });
-  
-  // Form setup
-  const form = useForm<DealFormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      dealName: deal?.dealName || '',
-      companyName: deal?.companyName || '',
-      amount: deal?.amount || '',
-      stage: (deal?.stage as DealStage) || 'Prospect',
-      ...Object.fromEntries(
-        fields.map(field => [
-          field.name,
-          typeof deal?.customFields?.[field.name] === 'object' 
-            ? String(deal.customFields[field.name]?.value || '')
-            : String(deal?.customFields?.[field.name] || '')
-        ])
-      )
-    }
-  });
-
-  // Handle form submission
-  const onSubmit = async (values: DealFormValues) => {
-    try {
-      setIsSubmitting(true);
-      form.clearErrors();
-
-      // Prepare form data
-      const formData = new FormData();
-      formData.append('dealName', values.dealName);
-      formData.append('companyName', values.companyName);
-      formData.append('amount', values.amount);
-      formData.append('stage', values.stage);
-
-      // Process custom fields
-      const customData: CustomFieldMap = {};
-      
-      fields.forEach(field => {
-        const value = values[field.name];
-        if (value) {
-          customData[field.name] = {
-            value: value.toString(),
-            type: field.type,
-            label: field.name
-          };
-        }
-      });
-
-      // Add custom fields to form data if any exist
-      if (Object.keys(customData).length > 0) {
-        formData.append('customFields', JSON.stringify(customData));
-      }
-
-      // Submit to server
-      const response = await (deal 
-        ? updateDeal(deal._id, formData)
-        : createDeal(formData));
-
-      // Handle errors
-      if (!response.success) {
-        if (response.errors) {
-          // Set field-specific errors
-          for (const [field, errors] of Object.entries(response.errors)) {
-            if (errors?.[0] && field in form.getValues()) {
-              form.setError(field as keyof DealFormValues, {
-                type: 'server',
-                message: errors[0]
-              });
-            }
-          }
-          return;
-        }
-        throw new Error(response.message);
-      }
-
-      // Success case
-      toast({
-        title: 'Success',
-        description: response.message
-      });
-
-      // Update parent
-      const updatedDeal = {
-        ...values,
-        _id: deal?._id,
-        customFields: customData
-      };
-
-      if (deal) {
-        onDealUpdated(updatedDeal);
-      } else {
-        onDealCreated(updatedDeal);
-      }
-
-      // Reset and close
-      form.reset();
-      onOpenChange(false);
-
-    } catch (error) {
-      console.error('Error submitting deal:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to submit deal'
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    setIsSubmitting(false);
   };
 
   const dialogTitle = deal ? "Edit Deal" : "Create New Deal";
@@ -632,28 +256,13 @@ export function NewDealDialog({
                   <Button
                     type="button"
                     size="sm"
-                    onClick={async () => {
+                    onClick={() => {
                       if (!newField.name.trim()) return;
-                      const result = await createCustomField(newField);
-                      if (result.success) {
-                        const fetchCustomFields = async () => {
-                          const result = await getCustomFields('deals');
-                          if (result.success && result.data) {
-                            const fields = result.data.map(doc => ({
-                              _id: doc._id.toString(),
-                              name: doc.name as string,
-                              type: doc.type as string,
-                              module: doc.module as string,
-                              createdAt: new Date(doc.createdAt as string),
-                              updatedAt: new Date(doc.updatedAt as string)
-                            }));
-                            setCustomFields(fields);
-                          }
-                        };
-                        fetchCustomFields();
-                        setNewField({ name: '', type: 'text', module: 'deals' });
-                        setShowAddField(false);
-                      }
+                      const updated = [...customFields, { ...newField, module: 'deals' }];
+                      setCustomFields(updated);
+                      saveCustomFields(updated);
+                      setNewField({ name: '', type: 'text' });
+                      setShowAddField(false);
                     }}
                   >Save</Button>
                 </div>
@@ -670,11 +279,10 @@ export function NewDealDialog({
                       type="button"
                       size="sm"
                       variant="destructive"
-                      onClick={async () => {
-                        const result = await deleteCustomField(field._id);
-                        if (result.success) {
-                          setCustomFields(customFields.filter(f2 => f2._id !== field._id));
-                        }
+                      onClick={() => {
+                        const updated = customFields.filter(f2 => !(f2.module === 'deals' && f2.name === field.name));
+                        setCustomFields(updated);
+                        saveCustomFields(updated);
                       }}
                     >Delete</Button>
                   </li>
@@ -687,7 +295,7 @@ export function NewDealDialog({
               <FormField
                 key={field.name}
                 control={form.control}
-                name={field.name as keyof DealFormValues}
+                name={field.name}
                 render={({ field: f }) => (
                   <FormItem>
                     <FormLabel>{field.name}</FormLabel>
@@ -708,7 +316,7 @@ export function NewDealDialog({
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>Cancel</Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Saving...' : deal ? 'Save Changes' : 'Create Deal'}
+                {isSubmitting ? 'Saving...' : buttonText}
               </Button>
             </DialogFooter>
           </form>

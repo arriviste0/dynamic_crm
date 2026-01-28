@@ -13,15 +13,7 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
-
-const chartData = [
-  { month: 'Jan', revenue: 0 },
-  { month: 'Feb', revenue: 0 },
-  { month: 'Mar', revenue: 0 },
-  { month: 'Apr', revenue: 0 },
-  { month: 'May', revenue: 0 },
-  { month: 'Jun', revenue: 0 },
-];
+import { useMemo } from 'react';
 
 const chartConfig = {
   revenue: {
@@ -30,12 +22,33 @@ const chartConfig = {
   },
 };
 
-export function RevenueChart() {
+interface RevenueChartProps {
+  invoices?: any[];
+}
+
+export function RevenueChart({ invoices = [] }: RevenueChartProps) {
+  const chartData = useMemo(() => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthData = months.map(month => ({ month, revenue: 0 }));
+
+    // Process invoices to calculate monthly revenue (all invoices)
+    invoices.forEach((invoice: any) => {
+      if (invoice.createdAt) {
+        const date = new Date(invoice.createdAt);
+        const monthIndex = date.getMonth();
+        // Include all invoices with totalAmount for complete revenue picture
+        monthData[monthIndex].revenue += invoice.totalAmount || 0;
+      }
+    });
+
+    return monthData;
+  }, [invoices]);
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Revenue</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
+        <CardDescription>Monthly Revenue by Invoice</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-[250px] w-full">

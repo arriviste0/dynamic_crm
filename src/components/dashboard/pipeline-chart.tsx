@@ -13,14 +13,7 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
-
-const chartData = [
-  { stage: 'Prospect', deals: 0 },
-  { stage: 'Qualifying', deals: 0 },
-  { stage: 'Proposal', deals: 0 },
-  { stage: 'Negotiation', deals: 0 },
-  { stage: 'Closed Won', deals: 0 },
-];
+import { useMemo } from 'react';
 
 const chartConfig = {
   deals: {
@@ -29,7 +22,26 @@ const chartConfig = {
   },
 };
 
-export function PipelineChart() {
+interface PipelineChartProps {
+  deals?: any[];
+}
+
+export function PipelineChart({ deals = [] }: PipelineChartProps) {
+  const chartData = useMemo(() => {
+    const stages = ['Prospect', 'Qualifying', 'Proposal', 'Negotiation', 'Closed Won'];
+    const stageData = stages.map(stage => ({ stage, deals: 0 }));
+
+    // Count deals by stage
+    deals.forEach((deal: any) => {
+      const stageIndex = stages.indexOf(deal.stage || 'Prospect');
+      if (stageIndex !== -1) {
+        stageData[stageIndex].deals += 1;
+      }
+    });
+
+    return stageData;
+  }, [deals]);
+
   return (
     <Card>
       <CardHeader>

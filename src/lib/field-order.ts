@@ -1,5 +1,7 @@
+'use server';
+
 import { CustomFieldsMap, CustomFieldValue, FieldOrder } from '@/lib/types';
-import clientPromise from '@/lib/mongodb';
+import { getDb } from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 
 /**
@@ -11,8 +13,7 @@ export async function updateFieldOrder(
   fieldOrder: string[]
 ): Promise<boolean> {
   try {
-    const client = await clientPromise;
-    const db = client.db();
+    const db = await getDb();
 
     // Update field order in the entity
     await db.collection(module).updateOne(
@@ -50,8 +51,7 @@ export async function getFieldOrder(
   entityId: string
 ): Promise<string[]> {
   try {
-    const client = await clientPromise;
-    const db = client.db();
+    const db = await getDb();
 
     // First try to get from the entity itself
     const entity = await db.collection(module).findOne(
@@ -86,8 +86,7 @@ export async function updateCustomFields(
   fieldOrder?: string[]
 ): Promise<boolean> {
   try {
-    const client = await clientPromise;
-    const db = client.db();
+    const db = await getDb();
 
     // Prepare custom fields with order if provided
     const processedFields: CustomFieldsMap = {};
@@ -134,8 +133,7 @@ export async function addCustomField(
   position?: number
 ): Promise<boolean> {
   try {
-    const client = await clientPromise;
-    const db = client.db();
+    const db = await getDb();
 
     // Get current field order
     const currentOrder = await getFieldOrder(module, entityId);

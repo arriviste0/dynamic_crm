@@ -53,10 +53,26 @@ export async function createInvoice(formData: FormData) {
       return { success: false, message: 'Invalid data.', errors: validation.error.flatten().fieldErrors };
     }
 
+    // Extract custom fields from form data
+    const standardFields = [
+      'customerName', 'customerEmail', 'status', 'dueDate', 'notes',
+      'items', 'invoiceNumber', 'totalAmount', 'owner', 'createdAt', 'updatedAt'
+    ];
+
+    const customFieldValues: Record<string, any> = {};
+
+    Object.keys(rawFormData).forEach(key => {
+      // Skip items fields and standard fields
+      if (!key.startsWith('items.') && !standardFields.includes(key)) {
+        customFieldValues[key] = rawFormData[key];
+      }
+    });
+
     const totalAmount = items.reduce((sum, item) => sum + item.total, 0);
 
     const invoiceData = {
       ...validation.data,
+      ...customFieldValues, // Spread custom fields as top-level fields
       invoiceNumber: `INV-${Date.now()}`,
       totalAmount,
       owner: { name: 'Admin User', avatar: 'https://picsum.photos/40/40?random=1' },
@@ -133,11 +149,26 @@ export async function updateInvoice(id: string, formData: FormData) {
       return { success: false, message: 'Invalid data.', errors: validation.error.flatten().fieldErrors };
     }
 
+    // Extract custom fields from form data
+    const standardFields = [
+      'customerName', 'customerEmail', 'status', 'dueDate', 'notes',
+      'items', 'invoiceNumber', 'totalAmount', 'owner', 'createdAt', 'updatedAt'
+    ];
+
+    const customFieldValues: Record<string, any> = {};
+
+    Object.keys(rawFormData).forEach(key => {
+      // Skip items fields and standard fields
+      if (!key.startsWith('items.') && !standardFields.includes(key)) {
+        customFieldValues[key] = rawFormData[key];
+      }
+    });
+
     const totalAmount = items.reduce((sum, item) => sum + item.total, 0);
 
     await db.collection('invoices').updateOne(
       { _id: new ObjectId(id) }, 
-      { $set: { ...validation.data, totalAmount, updatedAt: new Date() } }
+      { $set: { ...validation.data, ...customFieldValues, totalAmount, updatedAt: new Date() } }
     );
 
     revalidatePath('/invoices');

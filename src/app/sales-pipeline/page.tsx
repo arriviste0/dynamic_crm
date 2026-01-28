@@ -4,7 +4,7 @@ import {
   Sidebar,
   SidebarInset,
 } from '@/components/ui/sidebar';
-import SalesPipelinePage from '@/components/sales-pipeline/sales-pipeline-page';
+import { SalesPipelinePage } from '@/components/sales-pipeline/sales-pipeline-page';
 
 export default function SalesPipeline() {
   return (

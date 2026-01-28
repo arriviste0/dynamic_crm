@@ -49,6 +49,7 @@ function saveCustomFields(fields: any[]) {
 
 import { Invoice } from '@/lib/types';
 import { Plus, Trash2 } from 'lucide-react';
+import { generateInvoicePDF, downloadInvoicePDF } from '@/lib/invoice-pdf';
 
 const invoiceSchema = z.object({
   customerName: z.string().min(2, 'Customer name must be at least 2 characters.'),
@@ -151,6 +152,14 @@ export function NewInvoiceDialog({ open, onOpenChange, onInvoiceCreated, onInvoi
       formData.append(`items.${index}.unitPrice`, item.unitPrice.toString());
     });
 
+    // Add custom fields
+    customFields.filter(f => f.module === 'invoices').forEach(field => {
+      const fieldValue = form.getValues(field.name);
+      if (fieldValue !== undefined && fieldValue !== '') {
+        formData.append(field.name, fieldValue.toString());
+      }
+    });
+
     const result = invoice 
         ? await updateInvoice(invoice._id, formData) 
         : await createInvoice(formData);
@@ -160,6 +169,45 @@ export function NewInvoiceDialog({ open, onOpenChange, onInvoiceCreated, onInvoi
         title: 'Success!',
         description: result.message,
       });
+
+      // Generate and download PDF only for new invoices (not drafts)
+      if (!invoice && values.status !== 'Draft') {
+        try {
+          const invoiceNumber = `INV-${Date.now()}`;
+          const pdfData = {
+            invoiceNumber,
+            customerName: values.customerName,
+            customerEmail: values.customerEmail,
+            dueDate: values.dueDate,
+            invoiceDate: new Date().toLocaleDateString(),
+            items: values.items,
+            notes: values.notes,
+            company: {
+              name: 'Your Company Name',
+              address: '123 Business Street, City, State 12345',
+              phone: '(555) 123-4567',
+              email: 'billing@yourcompany.com',
+              website: 'www.yourcompany.com',
+            },
+          };
+
+          const pdf = generateInvoicePDF(pdfData);
+          downloadInvoicePDF(pdf, invoiceNumber);
+
+          toast({
+            title: 'PDF Generated',
+            description: 'Invoice PDF has been downloaded.',
+          });
+        } catch (error) {
+          console.error('PDF generation error:', error);
+          toast({
+            variant: 'destructive',
+            title: 'PDF Generation Error',
+            description: 'Could not generate PDF, but invoice was saved.',
+          });
+        }
+      }
+
       form.reset();
       onOpenChange(false);
       if (invoice) {

@@ -13,15 +13,7 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { Line, LineChart, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts';
-
-const chartData = [
-  { month: 'January', income: 0, outcome: 0 },
-  { month: 'February', income: 0, outcome: 0 },
-  { month: 'March', income: 0, outcome: 0 },
-  { month: 'April', income: 0, outcome: 0 },
-  { month: 'May', income: 0, outcome: 0 },
-  { month: 'June', income: 0, outcome: 0 },
-];
+import { useMemo } from 'react';
 
 const chartConfig = {
   income: {
@@ -34,12 +26,39 @@ const chartConfig = {
   },
 };
 
-export function CashFlowChart() {
+interface CashFlowChartProps {
+  invoices?: any[];
+}
+
+export function CashFlowChart({ invoices = [] }: CashFlowChartProps) {
+  const chartData = useMemo(() => {
+    const monthData = Array.from({ length: 12 }, (_, i) => ({
+      month: new Date(new Date().getFullYear(), i, 1).toLocaleString('default', { month: 'long' }),
+      income: 0,
+      outcome: 0,
+    }));
+
+    // Process invoices to calculate monthly income
+    invoices.forEach((invoice: any) => {
+      if (invoice.createdAt) {
+        const date = new Date(invoice.createdAt);
+        const monthIndex = date.getMonth();
+        if (invoice.status === 'Paid') {
+          monthData[monthIndex].income += invoice.totalAmount || 0;
+        } else if (invoice.status === 'Draft') {
+          monthData[monthIndex].outcome += invoice.totalAmount || 0;
+        }
+      }
+    });
+
+    return monthData;
+  }, [invoices]);
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Cash Flow</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
+        <CardDescription>Monthly Income vs Outcome</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-[250px] w-full">

@@ -28,6 +28,7 @@ import {
   Inbox,
   LayoutDashboard,
   Package,
+  BarChart3,
   Settings,
   Ticket,
   Users,
@@ -49,7 +50,7 @@ export function MainNav() {
       <SidebarHeader>
         <div className="flex items-center gap-2">
           <Icons.logo className="size-6 text-primary" />
-          <h1 className="text-xl font-semibold">Flex CRM</h1>
+          <h1 className="text-xl font-semibold">Dynamic CRM</h1>
         </div>
       </SidebarHeader>
       <SidebarContent className="p-2">
@@ -174,6 +175,14 @@ export function MainNav() {
               <Link href="/projects">
                 <Package />
                 <span>Projects</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild isActive={pathname.startsWith('/reports')}>
+              <Link href="/reports">
+                <BarChart3 />
+                <span>Reports</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

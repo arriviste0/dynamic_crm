@@ -12,16 +12,32 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { PolarAngleAxis, RadialBar, RadialBarChart } from 'recharts';
+import { useMemo } from 'react';
 
-const chartDataDeals = [{ name: 'Deals', value: 78, fill: 'hsl(var(--chart-2))' }];
-const chartDataConversion = [{ name: 'Conversion', value: 0, fill: 'hsl(var(--chart-3))' }];
+interface GaugeChartWidgetProps {
+  tickets?: any[];
+}
 
-export function GaugeChartWidget() {
+export function GaugeChartWidget({ tickets = [] }: GaugeChartWidgetProps) {
+  const { resolvedTickets, totalTickets, resolutionRate } = useMemo(() => {
+    const total = tickets.length;
+    const resolved = tickets.filter((t: any) => t.status === 'Resolved' || t.status === 'Closed').length;
+    const rate = total > 0 ? Math.round((resolved / total) * 100) : 0;
+    return {
+      resolvedTickets: resolved,
+      totalTickets: total,
+      resolutionRate: rate,
+    };
+  }, [tickets]);
+
+  const chartDataDeals = [{ name: 'Tickets', value: resolutionRate, fill: 'hsl(var(--chart-2))' }];
+  const chartDataConversion = [{ name: 'Resolution', value: resolutionRate, fill: 'hsl(var(--chart-3))' }];
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Quarterly Goals</CardTitle>
-        <CardDescription>Progress towards Q2 targets.</CardDescription>
+        <CardTitle>Support Metrics</CardTitle>
+        <CardDescription>Ticket resolution and support performance.</CardDescription>
       </CardHeader>
       <CardContent className="flex justify-around items-center h-[200px]">
         <div className="flex flex-col items-center">
@@ -46,8 +62,8 @@ export function GaugeChartWidget() {
               />
             </RadialBarChart>
           </ChartContainer>
-          <p className="text-center text-sm font-medium mt-2">Deals Won</p>
-          <p className="text-center text-xl font-bold">0/100</p>
+          <p className="text-center text-sm font-medium mt-2">Tickets Resolved</p>
+          <p className="text-center text-xl font-bold">{resolvedTickets}/{totalTickets}</p>
         </div>
         <div className="flex flex-col items-center">
           <ChartContainer config={{}} className="h-[120px] w-[120px]">
@@ -71,8 +87,8 @@ export function GaugeChartWidget() {
               />
             </RadialBarChart>
           </ChartContainer>
-          <p className="text-center text-sm font-medium mt-2">Conversion Rate</p>
-          <p className="text-center text-xl font-bold">0%</p>
+          <p className="text-center text-sm font-medium mt-2">Resolution Rate</p>
+          <p className="text-center text-xl font-bold">{resolutionRate}%</p>
         </div>
       </CardContent>
     </Card>

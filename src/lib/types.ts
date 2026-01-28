@@ -1,41 +1,8 @@
-// Custom field definition
-export interface CustomField extends BaseEntity {
-  name: string;
-  type: string;
-  module: string;
-  order: number;  // Field to track position
-  label: string;  // Display label
-  isVisible?: boolean;  // Whether field is visible in the UI
-}
-
-// Custom field value with metadata
-export interface CustomFieldValue {
-  value: string | number | boolean;
-  order: number;  // Field to track position
-  label: string;  // Display label
-  lastModified: Date;
-}
-
-// Custom fields map with order
-export interface CustomFieldsMap {
-  [key: string]: CustomFieldValue;
-}
-
-// Entity field order tracking
-export interface FieldOrder {
-  module: string;  // e.g., 'contacts', 'accounts'
-  entityId: string;  // ID of the entity
-  fieldOrder: string[];  // Array of field names in order
-  lastModified: Date;
-}
-
 // Base types for all entities
 export interface BaseEntity {
   _id: string;
   createdAt: Date;
   updatedAt: Date;
-  customFields?: CustomFieldsMap;
-  fieldOrder?: string[];  // Store field order at entity level
 }
 
 // Account types
@@ -333,3 +300,79 @@ export interface HistoryState {
   canUndo: boolean;
   canRedo: boolean;
 }
+
+// Report Engine Types
+export interface ReportFilter {
+  dateRange: {
+    startDate: string;
+    endDate: string;
+  };
+  status?: string[];
+  priority?: string[];
+  category?: string[];
+  customerId?: string;
+  itemId?: string;
+  searchTerm?: string;
+}
+
+export interface ReportConfig {
+  modules: ('accounts' | 'contacts' | 'deals' | 'invoices' | 'projects' | 'tickets' | 'inventory' | 'activities' | 'quotes' | 'services')[];
+  reportType: 'summary' | 'detailed' | 'comparative' | 'analytical';
+  timeframe: 'daily' | 'weekly' | 'monthly' | 'yearly' | 'custom';
+  filters: ReportFilter;
+  includeGraphs: boolean;
+  graphTypes?: ('bar' | 'line' | 'pie' | 'trend')[];
+  consolidated: boolean;
+}
+
+export interface ReportData {
+  title: string;
+  generatedAt: Date;
+  generatedBy: string;
+  timeframe: string;
+  modules: {
+    name: string;
+    data: any[];
+    summary: {
+      totalRecords: number;
+      activeRecords: number;
+      completedRecords: number;
+      pendingRecords: number;
+      metrics: Record<string, number | string>;
+    };
+    graphs?: {
+      type: string;
+      title: string;
+      data: any;
+    }[];
+  }[];
+  consolidated?: {
+    totalRecords: number;
+    breakdown: Record<string, number>;
+  };
+  filters: ReportFilter;
+}
+
+export interface ExportOptions {
+  format: 'excel' | 'pdf';
+  includeGraphs: boolean;
+  branding: {
+    companyName: string;
+    companyLogo?: string;
+    companyEmail?: string;
+    companyPhone?: string;
+  };
+}
+
+export interface ReportSchedule {
+  id: string;
+  name: string;
+  config: ReportConfig;
+  frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  recipients: string[];
+  nextRun: Date;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+

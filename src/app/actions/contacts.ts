@@ -42,16 +42,6 @@ export async function createContact(formData: FormData) {
       country: rawFormData['address.country'] as string || '',
     };
 
-    // Get custom fields
-    const customFields = await db.collection('customFields').find({ module: 'contacts' }).toArray();
-    const customFieldValues: Record<string, any> = {};
-    
-    customFields.forEach(field => {
-      if (rawFormData[field.name]) {
-        customFieldValues[field.name] = rawFormData[field.name];
-      }
-    });
-
     const validation = contactSchema.safeParse({
       ...rawFormData,
       address: addressData,
@@ -61,9 +51,24 @@ export async function createContact(formData: FormData) {
       return { success: false, message: 'Invalid data.', errors: validation.error.flatten().fieldErrors };
     }
 
+    // Extract custom fields from form data
+    const standardFields = [
+      'firstName', 'lastName', 'email', 'phone', 'jobTitle', 'company', 'department',
+      'address.street', 'address.city', 'address.state', 'address.zipCode', 'address.country',
+      'status', 'notes'
+    ];
+    
+    const customFieldValues: Record<string, any> = {};
+    
+    Object.keys(rawFormData).forEach(key => {
+      if (!standardFields.includes(key) && !key.startsWith('address.')) {
+        customFieldValues[key] = rawFormData[key];
+      }
+    });
+
     const contactData = {
       ...validation.data,
-      customFields: customFieldValues,
+      ...customFieldValues, // Spread custom fields as top-level fields
       owner: { name: 'Admin User', avatar: 'https://picsum.photos/40/40?random=1' },
       avatar: `https://picsum.photos/80/80?random=${Math.floor(Math.random() * 100)}`,
       createdAt: new Date(),
@@ -123,16 +128,6 @@ export async function updateContact(id: string, formData: FormData) {
       country: rawFormData['address.country'] as string || '',
     };
 
-    // Get custom fields
-    const customFields = await db.collection('customFields').find({ module: 'contacts' }).toArray();
-    const customFieldValues: Record<string, any> = {};
-    
-    customFields.forEach(field => {
-      if (rawFormData[field.name]) {
-        customFieldValues[field.name] = rawFormData[field.name];
-      }
-    });
-
     const validation = contactSchema.safeParse({
       ...rawFormData,
       address: addressData,
@@ -142,15 +137,24 @@ export async function updateContact(id: string, formData: FormData) {
       return { success: false, message: 'Invalid data.', errors: validation.error.flatten().fieldErrors };
     }
 
+    // Extract custom fields from form data
+    const standardFields = [
+      'firstName', 'lastName', 'email', 'phone', 'jobTitle', 'company', 'department',
+      'address.street', 'address.city', 'address.state', 'address.zipCode', 'address.country',
+      'status', 'notes'
+    ];
+    
+    const customFieldValues: Record<string, any> = {};
+    
+    Object.keys(rawFormData).forEach(key => {
+      if (!standardFields.includes(key) && !key.startsWith('address.')) {
+        customFieldValues[key] = rawFormData[key];
+      }
+    });
+
     await db.collection('contacts').updateOne(
       { _id: new ObjectId(id) }, 
-      { 
-        $set: { 
-          ...validation.data, 
-          customFields: customFieldValues,
-          updatedAt: new Date() 
-        } 
-      }
+      { $set: { ...validation.data, ...customFieldValues, updatedAt: new Date() } }
     );
 
     revalidatePath('/contacts');

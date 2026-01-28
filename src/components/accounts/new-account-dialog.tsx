@@ -32,7 +32,21 @@ import * as z from 'zod';
 import { createAccount, updateAccount } from '@/app/actions/accounts';
 import { useToast } from '@/hooks/use-toast';
 import React, { useEffect, useState } from 'react';
-import { getCustomFields, createCustomField } from '@/app/actions/custom-fields';
+// Helper to load and save custom fields in localStorage (for demo; replace with API/backend later)
+function loadCustomFields() {
+  if (typeof window !== 'undefined') {
+    try {
+      const data = localStorage.getItem('customFields');
+      if (data) return JSON.parse(data);
+    } catch {}
+  }
+  return [];
+}
+function saveCustomFields(fields: any[]) {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('customFields', JSON.stringify(fields));
+  }
+}
 import { Account } from '@/lib/types';
 
 const accountSchema = z.object({
@@ -61,12 +75,15 @@ type NewAccountDialogProps = {
 };
 
 export function NewAccountDialog({ open, onOpenChange, onAccountCreated, onAccountUpdated, account }: NewAccountDialogProps) {
-  const [customFields, setCustomFields] = useState<CustomField[]>([]);
+  const [customFields, setCustomFields] = useState<{ name: string; type: string; module: string }[]>([]);
   const [showAddField, setShowAddField] = useState(false);
-  const [newField, setNewField] = useState<Partial<CustomField>>({ name: '', type: 'text', module: 'accounts' });
+  const [newField, setNewField] = useState<{ name: string; type: string }>({ name: '', type: 'text' });
   const { toast } = useToast();
   // Extend form schema to include custom fields dynamically
-  const customFieldDefaults = customFields.reduce((acc, f) => ({ ...acc, [f.name]: '' }), {} as CustomFieldValue);
+  const customFieldDefaults = React.useMemo(() => 
+    customFields.filter(f => f.module === 'accounts').reduce((acc, f) => ({ ...acc, [f.name]: '' }), {} as Record<string, string>
+  ), [customFields]);
+  
   const form = useForm<any>({
     resolver: zodResolver(accountSchema),
     defaultValues: {
@@ -89,13 +106,7 @@ export function NewAccountDialog({ open, onOpenChange, onAccountCreated, onAccou
   });
 
   useEffect(() => {
-    async function loadFields() {
-      const result = await getCustomFields('accounts');
-      if (result.success) {
-        setCustomFields(result.data);
-      }
-    }
-    loadFields();
+    setCustomFields(loadCustomFields());
   }, [open]);
 
   useEffect(() => {
@@ -148,6 +159,15 @@ export function NewAccountDialog({ open, onOpenChange, onAccountCreated, onAccou
     Object.entries(values).forEach(([key, value]) => {
       if (key !== 'address') {
         formData.append(key, value as string);
+      }
+    });
+
+    // Add custom field values directly from form state
+    const accountCustomFields = customFields.filter(f => f.module === 'accounts');
+    accountCustomFields.forEach(field => {
+      const fieldValue = form.getValues(field.name);
+      if (fieldValue && fieldValue.trim() !== '') {
+        formData.append(field.name, fieldValue);
       }
     });
 
@@ -340,7 +360,7 @@ export function NewAccountDialog({ open, onOpenChange, onAccountCreated, onAccou
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Status *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select status" />
@@ -404,17 +424,13 @@ export function NewAccountDialog({ open, onOpenChange, onAccountCreated, onAccou
                   <Button
                     type="button"
                     size="sm"
-                    onClick={async () => {
+                    onClick={() => {
                       if (!newField.name.trim()) return;
-                      const result = await createCustomField({ ...newField, module: 'accounts' });
-                      if (result.success) {
-                        const fieldsResult = await getCustomFields('accounts');
-                        if (fieldsResult.success) {
-                          setCustomFields(fieldsResult.data);
-                        }
-                        setNewField({ name: '', type: 'text', module: 'accounts' });
-                        setShowAddField(false);
-                      }
+                      const updated = [...customFields, { ...newField, module: 'accounts' }];
+                      setCustomFields(updated);
+                      saveCustomFields(updated);
+                      setNewField({ name: '', type: 'text' });
+                      setShowAddField(false);
                     }}
                   >Save</Button>
                 </div>
@@ -431,14 +447,10 @@ export function NewAccountDialog({ open, onOpenChange, onAccountCreated, onAccou
                       type="button"
                       size="sm"
                       variant="destructive"
-                      onClick={async () => {
-                        const result = await deleteCustomField(field._id);
-                        if (result.success) {
-                          const fieldsResult = await getCustomFields('accounts');
-                          if (fieldsResult.success) {
-                            setCustomFields(fieldsResult.data);
-                          }
-                        }
+                      onClick={() => {
+                        const updated = customFields.filter(f2 => !(f2.module === 'accounts' && f2.name === field.name));
+                        setCustomFields(updated);
+                        saveCustomFields(updated);
                       }}
                     >Delete</Button>
                   </li>
@@ -449,7 +461,7 @@ export function NewAccountDialog({ open, onOpenChange, onAccountCreated, onAccou
             {/* Render custom fields dynamically */}
             {customFields.filter(f => f.module === 'accounts').map(field => (
               <FormField
-                key={field.name}
+                key={`${field.name}-${field.type}`}
                 control={form.control}
                 name={field.name}
                 render={({ field: f }) => (
@@ -457,11 +469,28 @@ export function NewAccountDialog({ open, onOpenChange, onAccountCreated, onAccou
                     <FormLabel>{field.name}</FormLabel>
                     <FormControl>
                       {field.type === 'text' ? (
-                        <Input {...f} placeholder={field.name} />
+                        <Input 
+                          {...f} 
+                          placeholder={field.name}
+                          value={f.value || ''}
+                          onChange={f.onChange}
+                        />
                       ) : field.type === 'number' ? (
-                        <Input {...f} type="number" placeholder={field.name} />
+                        <Input 
+                          {...f} 
+                          type="number" 
+                          placeholder={field.name}
+                          value={f.value || ''}
+                          onChange={f.onChange}
+                        />
                       ) : field.type === 'date' ? (
-                        <Input {...f} type="date" placeholder={field.name} />
+                        <Input 
+                          {...f} 
+                          type="date" 
+                          placeholder={field.name}
+                          value={f.value || ''}
+                          onChange={f.onChange}
+                        />
                       ) : null}
                     </FormControl>
                     <FormMessage />

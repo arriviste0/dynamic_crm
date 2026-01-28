@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'Flex CRM',
+  title: 'Dynamic CRM',
   description: 'A flexible CRM for any industry',
 };
 
